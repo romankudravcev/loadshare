@@ -136,14 +136,24 @@ export const weightOf = (v) => WEIGHTS.find(w => w.value === v) || WEIGHTS[1];
 
 export function computeLoad(persona) {
   const init = Object.fromEntries(
-    persona.members.map(m => [m.id, { planner: 0, organizer: 0, reminder: 0, executor: 0, total: 0 }])
+    persona.members.map(m => [m.id, { planner: 0, organizer: 0, reminder: 0, executor: 0, total: 0, mental: 0, physical: 0 }])
   );
   persona.tasks.forEach(t => {
+    // Only count active tasks towards current mental load? Let's count all or maybe only non-done.
+    // The previous implementation counted all tasks, let's just count active ones for true load.
+    if (t.status === 'done') return;
+    
     ROLES.forEach(r => {
       const who = t[r.key];
       if (who && init[who]) {
         init[who][r.key] += t.weight;
         init[who].total  += t.weight;
+        
+        if (r.key === 'executor') {
+          init[who].physical += t.weight;
+        } else {
+          init[who].mental += t.weight;
+        }
       }
     });
   });

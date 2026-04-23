@@ -190,6 +190,43 @@ export function DashboardScreen() {
         })}
       </View>
 
+      {/* Mental vs Physical Load */}
+      <View style={[styles.card, { backgroundColor: palette.surface, borderColor: palette.line, marginBottom: 14 }]}>
+        <View style={styles.cardHeader}>
+          <Kicker color={palette.muted}>Mental vs Physical</Kicker>
+          <Text style={[styles.byWeight, { color: palette.muted }]}>invisible labor</Text>
+        </View>
+        {persona.members.map(m => {
+          const mLoad = load[m.id];
+          const totalMP = mLoad.mental + mLoad.physical || 1;
+          const mentalPct = Math.round((mLoad.mental / totalMP) * 100);
+          const physicalPct = 100 - mentalPct;
+          return (
+            <View key={m.id} style={{ marginBottom: 12 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                <Avatar member={m} size={20} />
+                <Text style={{ fontFamily: 'DMSans_500Medium', fontSize: 12, color: palette.ink, marginLeft: 8, flex: 1 }}>
+                  {m.name}
+                </Text>
+                <Text style={{ fontFamily: 'DMSans_400Regular', fontSize: 11, color: palette.muted }}>
+                  Mental Load: <Text style={{ fontFamily: 'DMSans_600SemiBold', color: palette.warn }}>{mLoad.mental}</Text> pts
+                </Text>
+              </View>
+              
+              {/* Progress Bar for Mental vs Physical */}
+              <View style={[styles.barBg, { backgroundColor: palette.line, height: 8, flexDirection: 'row', marginTop: 4 }]}>
+                <View style={{ width: `${mentalPct}%`, backgroundColor: palette.warn, opacity: 0.85 }} />
+                <View style={{ width: `${physicalPct}%`, backgroundColor: palette.executor }} />
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
+                <Text style={{ fontFamily: 'DMSans_400Regular', fontSize: 10, color: palette.muted }}>Mental ({mentalPct}%)</Text>
+                <Text style={{ fontFamily: 'DMSans_400Regular', fontSize: 10, color: palette.muted }}>Physical ({physicalPct}%)</Text>
+              </View>
+            </View>
+          );
+        })}
+      </View>
+
       {/* Four kinds of labor */}
       <View style={[styles.card, { backgroundColor: palette.surface, borderColor: palette.line, marginBottom: 14 }]}>
         <Kicker color={palette.muted} style={{ marginBottom: 10 }}>The four kinds of labor</Kicker>
