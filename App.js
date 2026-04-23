@@ -134,9 +134,17 @@ function SettingsSheet({ visible, onClose }) {
 function AppShell() {
   const insets = useSafeAreaInsets();
   const FEATURE_NAME = 'feat/6-supabase-integration';
-  const { palette, persona, openTask, setOpenTask } = useApp();
+  const { palette, persona, openTask, setOpenTask, loading } = useApp();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [settingsOpen, setSettingsOpen] = useState(false);
+
+  if (loading || !persona) {
+    return (
+      <View style={{ flex: 1, backgroundColor: palette.bg, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color: palette.ink, fontFamily: 'DMSans_500Medium' }}>Loading data...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.bg }}>
