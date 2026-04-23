@@ -20,6 +20,7 @@ import { AppProvider, useApp } from './src/AppContext';
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { CreateScreen }   from './src/screens/CreateScreen';
 import { InboxScreen }    from './src/screens/InboxScreen';
+import { StartupScreen }  from './src/screens/StartupScreen';
 import { TaskSheet }      from './src/components/TaskSheet';
 import { Icon }           from './src/components/primitives';
 
@@ -165,6 +166,15 @@ function AppShell() {
   );
 }
 
+function MainContent() {
+  const [ready, setReady] = useState(false);
+  
+  if (!ready) {
+    return <StartupScreen onComplete={() => setReady(true)} />;
+  }
+  return <AppShell />;
+}
+
 // ── Root ──────────────────────────────────────────────────────────────────────
 export default function Root() {
   const [fontsLoaded] = useFonts({
@@ -182,7 +192,7 @@ export default function Root() {
   return (
     <SafeAreaProvider>
       <AppProvider>
-        <AppShell />
+        <MainContent />
       </AppProvider>
     </SafeAreaProvider>
   );
