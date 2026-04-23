@@ -22,6 +22,7 @@ import { CreateScreen }   from './src/screens/CreateScreen';
 import { InboxScreen }    from './src/screens/InboxScreen';
 import { TaskSheet }      from './src/components/TaskSheet';
 import { Icon }           from './src/components/primitives';
+import { Toast }          from './src/components/Toast';
 
 // ── Floating tab bar ──────────────────────────────────────────────────────────
 function FloatingTabBar({ active, onChange }) {
@@ -158,6 +159,7 @@ function AppShell() {
         onClose={() => setOpenTask(null)} />
 
       <SettingsSheet visible={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <Toast />
 
       {/* Floating preferences dot */}
       <TouchableOpacity

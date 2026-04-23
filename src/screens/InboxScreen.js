@@ -105,6 +105,15 @@ function InboxRow({ task, persona, palette, me, byId, onPress }) {
   const doer = byId[task.executor];
   const holder = byId[task.reminder];
   const isMine = holder?.id === me.id;
+  const { showToast } = useApp();
+
+  const handleRemind = () => {
+    showToast(`Reminded ${holder?.name} about ${task.title}`);
+  };
+
+  const handleNudge = () => {
+    showToast(`Nudged ${doer?.name} about ${task.title}`);
+  };
 
   return (
     <View style={[styles.inboxCard, {
@@ -144,7 +153,10 @@ function InboxRow({ task, persona, palette, me, byId, onPress }) {
       {/* Action strip */}
       {!isMine ? (
         <View style={[styles.actionStrip, { borderColor: palette.line }]}>
-          <TouchableOpacity onPress={() => setPicked(p => !p)}
+          <TouchableOpacity onPress={() => {
+            setPicked(p => !p);
+            showToast(!picked ? `Picked up from ${holder?.name}` : `Put back`);
+          }}
             style={[styles.actionBtn, { flex: 1 }]}
             activeOpacity={0.7}>
             <Icon name={picked ? 'check' : 'handoff'} size={14}
@@ -154,7 +166,7 @@ function InboxRow({ task, persona, palette, me, byId, onPress }) {
             </Text>
           </TouchableOpacity>
           <View style={[styles.actionDivider, { backgroundColor: palette.line }]} />
-          <TouchableOpacity style={styles.actionBtn} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.actionBtn} activeOpacity={0.7} onPress={handleRemind}>
             <Icon name="bell" size={14} color={palette.muted} />
             <Text style={[styles.actionText, { color: palette.muted }]}>Remind</Text>
           </TouchableOpacity>
@@ -164,7 +176,9 @@ function InboxRow({ task, persona, palette, me, byId, onPress }) {
           <Text style={[styles.waitingText, { color: palette.muted }]}>
             Waiting on {doer?.name} to finish
           </Text>
-          <Text style={[styles.nudgeText, { color: palette.accent }]}>Nudge</Text>
+          <TouchableOpacity onPress={handleNudge}>
+            <Text style={[styles.nudgeText, { color: palette.accent }]}>Nudge</Text>
+          </TouchableOpacity>
         </View>
       )}
     </View>
