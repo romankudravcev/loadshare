@@ -78,10 +78,14 @@ export function TaskSheet({ task, persona, palette, onClose }) {
 
           {/* actions */}
           <View style={styles.actions}>
-            <TouchableOpacity style={[styles.btnPrimary, { backgroundColor: palette.ink }]}>
+            <TouchableOpacity 
+              style={[styles.btnPrimary, { backgroundColor: palette.ink }]}
+              onPress={onClose}>
               <Text style={[styles.btnText, { color: palette.surface }]}>Pick up</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.btnSecondary, { borderColor: palette.lineStrong }]}>
+            <TouchableOpacity 
+              style={[styles.btnSecondary, { borderColor: palette.lineStrong }]}
+              onPress={onClose}>
               <Text style={[styles.btnText, { color: palette.ink }]}>Hand off</Text>
             </TouchableOpacity>
           </View>

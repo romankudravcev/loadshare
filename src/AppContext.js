@@ -7,6 +7,7 @@ export function AppProvider({ children }) {
   const [paletteKey, setPaletteKey] = useState('warm');
   const [personaKey, setPersonaKey] = useState('flat');
   const [openTask, setOpenTask] = useState(null);
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   const palette = PALETTES[paletteKey];
   const persona = PERSONAS[personaKey];
@@ -16,6 +17,7 @@ export function AppProvider({ children }) {
       palette, paletteKey, setPaletteKey,
       persona, personaKey, setPersonaKey,
       openTask, setOpenTask,
+      activeTab, setActiveTab,
     }}>
       {children}
     </AppContext.Provider>

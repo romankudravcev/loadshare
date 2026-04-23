@@ -84,7 +84,7 @@ function BalanceDial({ persona, palette, size = 180 }) {
 
 export function DashboardScreen() {
   const insets = useSafeAreaInsets();
-  const { palette, persona, setOpenTask } = useApp();
+  const { palette, persona, setOpenTask, setActiveTab } = useApp();
   const load = computeLoad(persona);
   const totals = persona.members.map(m => ({ m, v: load[m.id].total }));
   const sum = totals.reduce((s, t) => s + t.v, 0) || 1;
@@ -219,7 +219,9 @@ export function DashboardScreen() {
       {/* In motion today */}
       <View style={styles.sectionHeader}>
         <Kicker color={palette.muted}>In motion today</Kicker>
-        <Text style={[styles.seeAll, { color: palette.accent }]}>See all</Text>
+        <TouchableOpacity onPress={() => setActiveTab('inbox')}>
+          <Text style={[styles.seeAll, { color: palette.accent }]}>See all</Text>
+        </TouchableOpacity>
       </View>
       {active.map(t => (
         <TaskCard key={t.id} task={t} persona={persona} palette={palette}

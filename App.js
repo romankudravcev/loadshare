@@ -134,8 +134,7 @@ function SettingsSheet({ visible, onClose }) {
 function AppShell() {
   const insets = useSafeAreaInsets();
   const FEATURE_NAME = 'feat/5-button-wiring';
-  const { palette, persona, openTask, setOpenTask } = useApp();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const { palette, persona, openTask, setOpenTask, activeTab, setActiveTab } = useApp();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
