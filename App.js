@@ -261,3 +261,4 @@ const styles = StyleSheet.create({
   },
   settingsChipText: { fontFamily: 'DMSans_500Medium', fontSize: 14 },
 });
+// fancy animations
