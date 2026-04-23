@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, Modal,
+  View, Text, TouchableOpacity, StyleSheet, Modal, Share,
 } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
@@ -111,7 +111,7 @@ function SettingsSheet({ visible, onClose }) {
           </View>
 
           <Text style={[styles.settingsSectionLabel, { color: palette.muted }]}>Household</Text>
-          <View style={{ gap: 6 }}>
+          <View style={{ gap: 6, marginBottom: 22 }}>
             {personas.map(p => (
               <TouchableOpacity key={p.key} onPress={() => setPersonaKey(p.key)}
                 style={[styles.settingsChipWide, {
@@ -124,6 +124,21 @@ function SettingsSheet({ visible, onClose }) {
               </TouchableOpacity>
             ))}
           </View>
+
+          <TouchableOpacity 
+            style={[styles.settingsChipWide, { alignItems: 'center', backgroundColor: palette.lineStrong, borderColor: 'transparent' }]}
+            onPress={async () => {
+              try {
+                await Share.share({
+                  message: 'Join my household on Loadshare! Use this invite code: LOAD-SHARE-123',
+                });
+              } catch (error) {
+                console.error(error.message);
+              }
+            }}
+          >
+            <Text style={[styles.settingsChipText, { color: palette.ink }]}>Invite new member</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </Modal>
