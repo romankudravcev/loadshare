@@ -17,6 +17,7 @@ import {
 } from '@expo-google-fonts/dm-sans';
 
 import { AppProvider, useApp } from './src/AppContext';
+import { ProfileSetupScreen } from './src/screens/ProfileSetupScreen';
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { CreateScreen }   from './src/screens/CreateScreen';
 import { InboxScreen }    from './src/screens/InboxScreen';
@@ -165,6 +166,17 @@ function AppShell() {
   );
 }
 
+// ── App wrapper ───────────────────────────────────────────────────────────────
+function AppRouter() {
+  const { profile } = useApp();
+
+  if (!profile) {
+    return <ProfileSetupScreen />;
+  }
+
+  return <AppShell />;
+}
+
 // ── Root ──────────────────────────────────────────────────────────────────────
 export default function Root() {
   const [fontsLoaded] = useFonts({
@@ -182,7 +194,7 @@ export default function Root() {
   return (
     <SafeAreaProvider>
       <AppProvider>
-        <AppShell />
+        <AppRouter />
       </AppProvider>
     </SafeAreaProvider>
   );
