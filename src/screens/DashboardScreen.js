@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path, Line } from 'react-native-svg';
 import { useApp } from '../AppContext';
@@ -84,7 +84,8 @@ function BalanceDial({ persona, palette, size = 180 }) {
 
 export function DashboardScreen() {
   const insets = useSafeAreaInsets();
-  const { palette, persona, setOpenTask } = useApp();
+  const { palette, persona, setOpenTask, isPro, setIsPro } = useApp();
+  const [showProModal, setShowProModal] = useState(false);
   const load = computeLoad(persona);
   const totals = persona.members.map(m => ({ m, v: load[m.id].total }));
   const sum = totals.reduce((s, t) => s + t.v, 0) || 1;
@@ -109,6 +110,48 @@ export function DashboardScreen() {
       }}
       showsVerticalScrollIndicator={false}
     >
+      {/* Ad Banner */}
+      {!isPro && (
+        <TouchableOpacity 
+          style={{ backgroundColor: palette.warn + '20', padding: 12, borderRadius: 12, marginBottom: 14, alignItems: 'center' }}
+          onPress={() => setShowProModal(true)}
+        >
+          <Text style={{ fontFamily: 'DMSans_700Bold', color: palette.warn }}>Upgrade to Pro!</Text>
+          <Text style={{ fontFamily: 'DMSans_400Regular', color: palette.ink, fontSize: 12, marginTop: 4 }}>No ads, more groups, and premium features.</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Pro Modal */}
+      <Modal visible={showProModal} transparent animationType="slide" onRequestClose={() => setShowProModal(false)}>
+        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <TouchableOpacity style={StyleSheet.absoluteFillObject} onPress={() => setShowProModal(false)} activeOpacity={1} />
+          <View style={{ backgroundColor: palette.surface, padding: 24, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingBottom: insets.bottom + 24 }}>
+            <Text style={{ fontFamily: 'InstrumentSerif_400Regular', fontSize: 32, color: palette.ink, marginBottom: 8 }}>Loadshare Pro</Text>
+            <Text style={{ fontFamily: 'DMSans_400Regular', fontSize: 14, color: palette.muted, marginBottom: 24 }}>Unlock the full potential of your household.</Text>
+            
+            <View style={{ marginBottom: 24, gap: 12 }}>
+              <Text style={{ fontFamily: 'DMSans_500Medium', color: palette.ink }}>✨ Remove all ads</Text>
+              <Text style={{ fontFamily: 'DMSans_500Medium', color: palette.ink }}>✨ Unlimited groups</Text>
+              <Text style={{ fontFamily: 'DMSans_500Medium', color: palette.ink }}>✨ Advanced analytics</Text>
+            </View>
+
+            <TouchableOpacity 
+              style={{ backgroundColor: palette.ink, padding: 16, borderRadius: 12, alignItems: 'center', marginBottom: 12 }}
+              onPress={() => { setIsPro(true); setShowProModal(false); }}
+            >
+              <Text style={{ fontFamily: 'DMSans_700Bold', color: palette.surface, fontSize: 16 }}>Subscribe ($4.99/mo)</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={{ padding: 16, alignItems: 'center' }}
+              onPress={() => setShowProModal(false)}
+            >
+              <Text style={{ fontFamily: 'DMSans_500Medium', color: palette.muted }}>Maybe later</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       {/* Header */}
       <View style={styles.headerRow}>
         <View>
