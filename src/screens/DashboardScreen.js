@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path, Line } from 'react-native-svg';
 import { useApp } from '../AppContext';
@@ -82,6 +82,30 @@ function BalanceDial({ persona, palette, size = 180 }) {
   );
 }
 
+const AnimatedCard = ({ children, index, style }) => {
+  const anim = useRef(new Animated.Value(0)).current;
+  
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: 1,
+      duration: 500,
+      delay: index * 100,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const translateY = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [50, 0],
+  });
+
+  return (
+    <Animated.View style={[style, { opacity: anim, transform: [{ translateY }] }]}>
+      {children}
+    </Animated.View>
+  );
+};
+
 export function DashboardScreen() {
   const insets = useSafeAreaInsets();
   const { palette, persona, setOpenTask } = useApp();
@@ -124,7 +148,7 @@ export function DashboardScreen() {
       </View>
 
       {/* Balance card */}
-      <View style={[styles.card, { backgroundColor: palette.surface, borderColor: palette.line, marginBottom: 14 }]}>
+      <AnimatedCard index={0} style={[styles.card, { backgroundColor: palette.surface, borderColor: palette.line, marginBottom: 14 }]}>
         <View style={{ flexDirection: 'row', gap: 18, alignItems: 'center' }}>
           <BalanceDial persona={persona} palette={palette} size={140} />
           <View style={{ flex: 1 }}>
@@ -147,10 +171,10 @@ export function DashboardScreen() {
             ))}
           </View>
         </View>
-      </View>
+      </AnimatedCard>
 
       {/* On each plate */}
-      <View style={[styles.card, { backgroundColor: palette.surface, borderColor: palette.line, marginBottom: 14 }]}>
+      <AnimatedCard index={1} style={[styles.card, { backgroundColor: palette.surface, borderColor: palette.line, marginBottom: 14 }]}>
         <View style={styles.cardHeader}>
           <Kicker color={palette.muted}>On each plate</Kicker>
           <Text style={[styles.byWeight, { color: palette.muted }]}>by weight</Text>
@@ -188,10 +212,10 @@ export function DashboardScreen() {
             </View>
           );
         })}
-      </View>
+      </AnimatedCard>
 
       {/* Four kinds of labor */}
-      <View style={[styles.card, { backgroundColor: palette.surface, borderColor: palette.line, marginBottom: 14 }]}>
+      <AnimatedCard index={2} style={[styles.card, { backgroundColor: palette.surface, borderColor: palette.line, marginBottom: 14 }]}>
         <Kicker color={palette.muted} style={{ marginBottom: 10 }}>The four kinds of labor</Kicker>
         <View style={styles.rolesGrid}>
           {ROLES.map(r => {
@@ -214,16 +238,18 @@ export function DashboardScreen() {
             );
           })}
         </View>
-      </View>
+      </AnimatedCard>
 
       {/* In motion today */}
-      <View style={styles.sectionHeader}>
+      <AnimatedCard index={3} style={styles.sectionHeader}>
         <Kicker color={palette.muted}>In motion today</Kicker>
         <Text style={[styles.seeAll, { color: palette.accent }]}>See all</Text>
-      </View>
-      {active.map(t => (
-        <TaskCard key={t.id} task={t} persona={persona} palette={palette}
-          onPress={() => setOpenTask(t)} />
+      </AnimatedCard>
+      {active.map((t, idx) => (
+        <AnimatedCard index={4 + idx} key={t.id}>
+          <TaskCard task={t} persona={persona} palette={palette}
+            onPress={() => setOpenTask(t)} />
+        </AnimatedCard>
       ))}
     </ScrollView>
   );

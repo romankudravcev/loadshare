@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   Modal, View, Text, ScrollView, TouchableOpacity,
-  TouchableWithoutFeedback, StyleSheet, Pressable,
+  StyleSheet, Pressable, Animated, Easing
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ROLES, weightOf } from '../tokens';
@@ -9,44 +9,78 @@ import { Avatar, RoleGlyph, WeightBars, Kicker, Display } from './primitives';
 
 export function TaskSheet({ task, persona, palette, onClose }) {
   const insets = useSafeAreaInsets();
-  if (!task) return null;
+  
+  const [visible, setVisible] = useState(!!task);
+  const slideAnim = useRef(new Animated.Value(0)).current;
 
-  const byId = Object.fromEntries(persona.members.map(m => [m.id, m]));
+  useEffect(() => {
+    if (task) {
+      setVisible(true);
+      Animated.timing(slideAnim, {
+        toValue: 1,
+        duration: 250,
+        easing: Easing.out(Easing.poly(4)),
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 200,
+        easing: Easing.in(Easing.poly(4)),
+        useNativeDriver: true,
+      }).start(() => setVisible(false));
+    }
+  }, [task]);
+
+  if (!visible && !task) return null;
+  const currentTask = task || {}; // use last task when animating out
+
+  const byId = Object.fromEntries(persona?.members?.map(m => [m.id, m]) || []);
   const events = ROLES.map(r => ({
     role: r.key, label: r.name, verb: r.verb,
-    who: byId[task[r.key]],
-    pending: r.key === 'executor' && task.status !== 'done',
+    who: byId[currentTask[r.key]],
+    pending: r.key === 'executor' && currentTask.status !== 'done',
   }));
-  const w = weightOf(task.weight);
+  const w = weightOf(currentTask.weight || 1);
+
+  const translateY = slideAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [600, 0] // start 600px down
+  });
+  const opacity = slideAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1]
+  });
 
   return (
-    <Modal visible transparent animationType="none" statusBarTranslucent onRequestClose={onClose}>
-      <View style={styles.overlay}>
+    <Modal visible={visible} transparent animationType="none" statusBarTranslucent onRequestClose={onClose}>
+      <Animated.View style={[styles.overlay, { opacity }]}>
         <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
-        <View style={[styles.sheet, {
+        <Animated.View style={[styles.sheet, {
           backgroundColor: palette.bg,
           paddingBottom: Math.max(insets.bottom + 12, 24),
+          transform: [{ translateY }]
         }]}>
           {/* handle */}
           <View style={[styles.handle, { backgroundColor: palette.lineStrong }]} />
 
           {/* header row */}
           <View style={styles.headerRow}>
-            <Kicker color={palette.muted}>{task.category} · {task.when}</Kicker>
+            <Kicker color={palette.muted}>{currentTask.category} · {currentTask.when}</Kicker>
             <View style={[styles.weightPill, {
               backgroundColor: palette.surface,
               borderColor: palette.line,
             }]}>
-              <WeightBars value={task.weight} color={palette.ink} muted={palette.ink} size="xs" />
+              <WeightBars value={currentTask.weight} color={palette.ink} muted={palette.ink} size="xs" />
               <Text style={[styles.weightLabel, { color: palette.inkSoft }]}>{w.label}</Text>
             </View>
           </View>
 
           <Display size={26} style={{ color: palette.ink, marginTop: 6, marginBottom: 4 }}>
-            {task.title}
+            {currentTask.title}
           </Display>
           <Text style={[styles.subtext, { color: palette.muted }]}>
-            {w.sub} · adds {task.weight} pts per role to whoever holds it
+            {w.sub} · adds {currentTask.weight} pts per role to whoever holds it
           </Text>
 
           {/* role timeline */}
@@ -85,8 +119,8 @@ export function TaskSheet({ task, persona, palette, onClose }) {
               <Text style={[styles.btnText, { color: palette.ink }]}>Hand off</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      </View>
+        </Animated.View>
+      </Animated.View>
     </Modal>
   );
 }
