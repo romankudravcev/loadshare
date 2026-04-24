@@ -17,6 +17,7 @@ import {
 } from '@expo-google-fonts/dm-sans';
 
 import { AppProvider, useApp } from './src/AppContext';
+import { ProfileSetupScreen } from './src/screens/ProfileSetupScreen';
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { CreateScreen }   from './src/screens/CreateScreen';
 import { InboxScreen }    from './src/screens/InboxScreen';
@@ -167,8 +168,8 @@ function AppShell() {
   );
 }
 
-function MainContent() {
-  const { isAuthenticated } = useApp();
+function AppRouter() {
+  const { isAuthenticated, profile } = useApp();
   const [ready, setReady] = useState(false);
   
   if (!ready) {
@@ -177,6 +178,10 @@ function MainContent() {
 
   if (!isAuthenticated) {
     return <AuthScreen />;
+  }
+
+  if (!profile) {
+    return <ProfileSetupScreen />;
   }
 
   return <AppShell />;
@@ -199,7 +204,7 @@ export default function Root() {
   return (
     <SafeAreaProvider>
       <AppProvider>
-        <MainContent />
+        <AppRouter />
       </AppProvider>
     </SafeAreaProvider>
   );

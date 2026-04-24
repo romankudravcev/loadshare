@@ -8,6 +8,7 @@ export function AppProvider({ children }) {
   const [personaKey, setPersonaKey] = useState('flat');
   const [openTask, setOpenTask] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [profile, setProfile] = useState(null);
 
   const palette = PALETTES[paletteKey];
   const persona = PERSONAS[personaKey];
@@ -18,6 +19,7 @@ export function AppProvider({ children }) {
       persona, personaKey, setPersonaKey,
       openTask, setOpenTask,
       isAuthenticated, setIsAuthenticated,
+      profile, setProfile,
     }}>
       {children}
     </AppContext.Provider>
