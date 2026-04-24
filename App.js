@@ -167,8 +167,15 @@ function AppShell() {
 }
 
 // ── App Router ────────────────────────────────────────────────────────────────
+import { StartupScreen } from './src/screens/StartupScreen';
+
 function AppRouter() {
+  const [startupDone, setStartupDone] = useState(false);
   const [introDone, setIntroDone] = useState(false);
+
+  if (!startupDone) {
+    return <StartupScreen onComplete={() => setStartupDone(true)} />;
+  }
 
   if (!introDone) {
     return <AppIntroScreen onComplete={() => setIntroDone(true)} />;
