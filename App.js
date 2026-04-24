@@ -137,9 +137,17 @@ function SettingsSheet({ visible, onClose }) {
 // ── App shell ─────────────────────────────────────────────────────────────────
 function AppShell() {
   const insets = useSafeAreaInsets();
-  const FEATURE_NAME = 'feat/5-button-wiring';
-  const { palette, persona, openTask, setOpenTask, activeTab, setActiveTab } = useApp();
+  const FEATURE_NAME = 'feat/6-supabase-integration';
+  const { palette, persona, openTask, setOpenTask, activeTab, setActiveTab, loading } = useApp();
   const [settingsOpen, setSettingsOpen] = useState(false);
+
+  if (loading || !persona) {
+    return (
+      <View style={{ flex: 1, backgroundColor: palette.bg, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color: palette.ink, fontFamily: 'DMSans_500Medium' }}>Loading data...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.bg }}>
