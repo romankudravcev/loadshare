@@ -21,6 +21,7 @@ import { DashboardScreen } from './src/screens/DashboardScreen';
 import { CreateScreen }   from './src/screens/CreateScreen';
 import { InboxScreen }    from './src/screens/InboxScreen';
 import { StartupScreen }  from './src/screens/StartupScreen';
+import { AuthScreen }     from './src/screens/AuthScreen';
 import { TaskSheet }      from './src/components/TaskSheet';
 import { Icon }           from './src/components/primitives';
 
@@ -167,11 +168,17 @@ function AppShell() {
 }
 
 function MainContent() {
+  const { isAuthenticated } = useApp();
   const [ready, setReady] = useState(false);
   
   if (!ready) {
     return <StartupScreen onComplete={() => setReady(true)} />;
   }
+
+  if (!isAuthenticated) {
+    return <AuthScreen />;
+  }
+
   return <AppShell />;
 }
 
