@@ -18,6 +18,7 @@ import {
 
 import { AppProvider, useApp } from './src/AppContext';
 import { ProfileSetupScreen } from './src/screens/ProfileSetupScreen';
+import { AppIntroScreen }     from './src/screens/AppIntroScreen';
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { CreateScreen }   from './src/screens/CreateScreen';
 import { InboxScreen }    from './src/screens/InboxScreen';
@@ -168,12 +169,45 @@ function AppShell() {
   );
 }
 
+// ── App Router ────────────────────────────────────────────────────────────────
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 function AppRouter() {
   const { isAuthenticated, profile } = useApp();
-  const [ready, setReady] = useState(false);
-  
-  if (!ready) {
-    return <StartupScreen onComplete={() => setReady(true)} />;
+  const [startupDone, setStartupDone] = useState(false);
+  const [introDone, setIntroDone] = useState(false);
+  const [introChecked, setIntroChecked] = useState(false);
+
+  React.useEffect(() => {
+    async function checkIntro() {
+      try {
+        const value = await AsyncStorage.getItem('@intro_done');
+        if (value === 'true') {
+          setIntroDone(true);
+        }
+      } catch (e) {
+        // error
+      }
+      setIntroChecked(true);
+    }
+    checkIntro();
+  }, []);
+
+  const handleIntroComplete = async () => {
+    try {
+      await AsyncStorage.setItem('@intro_done', 'true');
+    } catch (e) {
+      // error
+    }
+    setIntroDone(true);
+  };
+
+  if (!startupDone || !introChecked) {
+    return <StartupScreen onComplete={() => setStartupDone(true)} />;
+  }
+
+  if (!introDone) {
+    return <AppIntroScreen onComplete={handleIntroComplete} />;
   }
 
   if (!isAuthenticated) {
