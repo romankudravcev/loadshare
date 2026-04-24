@@ -26,6 +26,16 @@ import { StartupScreen }  from './src/screens/StartupScreen';
 import { AuthScreen }     from './src/screens/AuthScreen';
 import { TaskSheet }      from './src/components/TaskSheet';
 import { Icon }           from './src/components/primitives';
+import { Toast }          from './src/components/Toast';
+import * as Notifications from 'expo-notifications';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
 
 // ── Floating tab bar ──────────────────────────────────────────────────────────
 function FloatingTabBar({ active, onChange }) {
@@ -137,7 +147,7 @@ function SettingsSheet({ visible, onClose }) {
 // ── App shell ─────────────────────────────────────────────────────────────────
 function AppShell() {
   const insets = useSafeAreaInsets();
-  const FEATURE_NAME = 'feat/7-fancy-animations';
+  const FEATURE_NAME = 'feat/8-notifications';
   const { palette, persona, openTask, setOpenTask, activeTab, setActiveTab, loading } = useApp();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -169,6 +179,7 @@ function AppShell() {
         onClose={() => setOpenTask(null)} />
 
       <SettingsSheet visible={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <Toast />
 
       {/* Floating preferences dot */}
       <TouchableOpacity
@@ -237,6 +248,15 @@ function AppRouter() {
 
 // ── Root ──────────────────────────────────────────────────────────────────────
 export default function Root() {
+  React.useEffect(() => {
+    (async () => {
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== 'granted') {
+        console.log('Notification permissions not granted');
+      }
+    })();
+  }, []);
+
   const [fontsLoaded] = useFonts({
     InstrumentSerif_400Regular,
     InstrumentSerif_400Regular_Italic,

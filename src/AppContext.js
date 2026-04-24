@@ -15,6 +15,7 @@ export function AppProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profile, setProfile] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [toastMessage, setToastMessage] = useState(null);
 
   const palette = PALETTES[paletteKey];
 
@@ -33,6 +34,11 @@ export function AppProvider({ children }) {
     setPersona(data);
   };
 
+  const showToast = (message) => {
+    setToastMessage(message);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
   return (
     <AppContext.Provider value={{
       palette, paletteKey, setPaletteKey,
@@ -42,7 +48,8 @@ export function AppProvider({ children }) {
       profile, setProfile,
       activeTab, setActiveTab,
       loading, refreshPersona,
-      api
+      api,
+      toastMessage, showToast
     }}>
       {children}
     </AppContext.Provider>
