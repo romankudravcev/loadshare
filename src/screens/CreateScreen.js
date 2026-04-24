@@ -15,7 +15,7 @@ const CATEGORIES = ['Home', 'Food', 'Kids', 'Admin', 'Family', 'Errands'];
 
 export function CreateScreen() {
   const insets = useSafeAreaInsets();
-  const { palette, persona } = useApp();
+  const { palette, persona, setActiveTab } = useApp();
 
   const [title, setTitle] = useState('');
   const [when, setWhen] = useState('This week');
@@ -35,6 +35,17 @@ export function CreateScreen() {
   const myId = persona.members[0].id;
   const rolesOnMe = ROLES.filter(r => assign[r.key] === myId).length;
 
+  const handleCancel = () => {
+    setTitle('');
+    setActiveTab('dashboard');
+  };
+
+  const handleSave = () => {
+    if (!title.trim()) return;
+    setTitle('');
+    setActiveTab('dashboard');
+  };
+
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: palette.bg }}
@@ -48,9 +59,13 @@ export function CreateScreen() {
     >
       {/* Header */}
       <View style={styles.headerRow}>
-        <Text style={[styles.cancelBtn, { color: palette.muted }]}>Cancel</Text>
+        <TouchableOpacity onPress={handleCancel}>
+          <Text style={[styles.cancelBtn, { color: palette.muted }]}>Cancel</Text>
+        </TouchableOpacity>
         <Text style={[styles.titleLabel, { color: palette.ink }]}>New task</Text>
-        <Text style={[styles.saveBtn, { color: title ? palette.accent : palette.muted }]}>Save</Text>
+        <TouchableOpacity onPress={handleSave}>
+          <Text style={[styles.saveBtn, { color: title ? palette.accent : palette.muted }]}>Save</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Title input */}

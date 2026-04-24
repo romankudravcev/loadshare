@@ -9,6 +9,7 @@ export function AppProvider({ children }) {
   const [openTask, setOpenTask] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profile, setProfile] = useState(null);
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   const palette = PALETTES[paletteKey];
   const persona = PERSONAS[personaKey];
@@ -20,6 +21,7 @@ export function AppProvider({ children }) {
       openTask, setOpenTask,
       isAuthenticated, setIsAuthenticated,
       profile, setProfile,
+      activeTab, setActiveTab,
     }}>
       {children}
     </AppContext.Provider>

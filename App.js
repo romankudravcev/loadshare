@@ -136,12 +136,18 @@ function SettingsSheet({ visible, onClose }) {
 
 // ── App shell ─────────────────────────────────────────────────────────────────
 function AppShell() {
-  const { palette, persona, openTask, setOpenTask } = useApp();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const insets = useSafeAreaInsets();
+  const FEATURE_NAME = 'feat/5-button-wiring';
+  const { palette, persona, openTask, setOpenTask, activeTab, setActiveTab } = useApp();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.bg }}>
+      <View style={{ backgroundColor: palette.ink, paddingTop: insets.top, paddingBottom: 8, alignItems: 'center' }}>
+        <Text style={{ color: palette.surface, fontFamily: 'DMSans_700Bold', fontSize: 12, letterSpacing: 1, textTransform: 'uppercase' }}>
+          Testing: {FEATURE_NAME}
+        </Text>
+      </View>
       {/* Active screen */}
       {activeTab === 'dashboard' && <DashboardScreen />}
       {activeTab === 'create'    && <CreateScreen />}

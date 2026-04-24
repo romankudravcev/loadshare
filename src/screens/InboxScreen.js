@@ -102,6 +102,9 @@ export function InboxScreen() {
 
 function InboxRow({ task, persona, palette, me, byId, onPress }) {
   const [picked, setPicked] = useState(false);
+  const [reminded, setReminded] = useState(false);
+  const [nudged, setNudged] = useState(false);
+  
   const doer = byId[task.executor];
   const holder = byId[task.reminder];
   const isMine = holder?.id === me.id;
@@ -154,9 +157,14 @@ function InboxRow({ task, persona, palette, me, byId, onPress }) {
             </Text>
           </TouchableOpacity>
           <View style={[styles.actionDivider, { backgroundColor: palette.line }]} />
-          <TouchableOpacity style={styles.actionBtn} activeOpacity={0.7}>
-            <Icon name="bell" size={14} color={palette.muted} />
-            <Text style={[styles.actionText, { color: palette.muted }]}>Remind</Text>
+          <TouchableOpacity 
+            style={styles.actionBtn} 
+            activeOpacity={0.7}
+            onPress={() => setReminded(true)}>
+            <Icon name="bell" size={14} color={reminded ? palette.accent : palette.muted} />
+            <Text style={[styles.actionText, { color: reminded ? palette.accent : palette.muted }]}>
+              {reminded ? 'Reminded' : 'Remind'}
+            </Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -164,7 +172,11 @@ function InboxRow({ task, persona, palette, me, byId, onPress }) {
           <Text style={[styles.waitingText, { color: palette.muted }]}>
             Waiting on {doer?.name} to finish
           </Text>
-          <Text style={[styles.nudgeText, { color: palette.accent }]}>Nudge</Text>
+          <TouchableOpacity onPress={() => setNudged(true)} activeOpacity={0.7}>
+            <Text style={[styles.nudgeText, { color: nudged ? palette.muted : palette.accent }]}>
+              {nudged ? 'Nudged' : 'Nudge'}
+            </Text>
+          </TouchableOpacity>
         </View>
       )}
     </View>
