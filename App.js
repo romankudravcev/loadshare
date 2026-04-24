@@ -23,6 +23,15 @@ import { InboxScreen }    from './src/screens/InboxScreen';
 import { TaskSheet }      from './src/components/TaskSheet';
 import { Icon }           from './src/components/primitives';
 import { Toast }          from './src/components/Toast';
+import * as Notifications from 'expo-notifications';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
 
 // ── Floating tab bar ──────────────────────────────────────────────────────────
 function FloatingTabBar({ active, onChange }) {
@@ -176,6 +185,15 @@ function AppShell() {
 
 // ── Root ──────────────────────────────────────────────────────────────────────
 export default function Root() {
+  React.useEffect(() => {
+    (async () => {
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== 'granted') {
+        console.log('Notification permissions not granted');
+      }
+    })();
+  }, []);
+
   const [fontsLoaded] = useFonts({
     InstrumentSerif_400Regular,
     InstrumentSerif_400Regular_Italic,

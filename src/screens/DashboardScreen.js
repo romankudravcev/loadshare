@@ -119,7 +119,7 @@ export function DashboardScreen() {
         </View>
         <View>
           <Avatar member={persona.members[0]} size={36} />
-          <View style={[styles.notifDot, { backgroundColor: palette.warn, borderColor: palette.bg }]} />
+          <View style={[styles.notifDot, { backgroundColor: '#FF3B30', borderColor: palette.bg }]} />
         </View>
       </View>
 
@@ -277,7 +277,7 @@ function TaskCard({ task, persona, palette, onPress }) {
 
 const styles = StyleSheet.create({
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
-  notifDot: { position: 'absolute', top: -2, right: -2, width: 10, height: 10, borderRadius: 5, borderWidth: 2, borderColor: '#F4EFE6' },
+  notifDot: { position: 'absolute', top: -3, right: -3, width: 14, height: 14, borderRadius: 7, borderWidth: 2, borderColor: '#F4EFE6' },
   card: { borderRadius: 18, borderWidth: 0.5, padding: 16 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 },
   balanceMsg: { fontFamily: 'DMSans_500Medium', fontSize: 14, lineHeight: 20, marginTop: 4, marginBottom: 12 },
