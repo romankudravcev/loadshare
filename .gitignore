@@ -1,41 +1,18 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# ── App ────────────────────────────────────────────────────────────────────────
+app/node_modules/
+app/.expo/
+app/dist/
+app/.env
 
-# dependencies
-node_modules/
+# ── Backend ────────────────────────────────────────────────────────────────────
+backend/tmp/
+backend/.env
 
-# Expo
-.expo/
-dist/
-web-build/
-expo-env.d.ts
+# ── Root ───────────────────────────────────────────────────────────────────────
+.env
+*.zip
 
-# Native
-.kotlin/
-*.orig.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-
-# Metro
-.metro-health-check*
-
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-
-# macOS
+# ── OS ─────────────────────────────────────────────────────────────────────────
 .DS_Store
-*.pem
-
-# local env files
-.env*.local
-
-# typescript
-*.tsbuildinfo
-
-# generated native folders
-/ios
-/android
+Thumbs.db
+*.log

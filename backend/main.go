@@ -13,17 +13,12 @@ import (
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found, using environment variables")
+		log.Println("No .env file found, reading from environment")
 	}
 
-	for _, key := range []string{"JWT_SECRET", "DATABASE_URL"} {
+	for _, key := range []string{"DATABASE_URL", "SUPABASE_JWT_SECRET"} {
 		if os.Getenv(key) == "" {
-			log.Fatalf("Required environment variable %s is not set", key)
-		}
-	}
-	for _, key := range []string{"GOOGLE_CLIENT_ID", "APPLE_APP_BUNDLE_ID"} {
-		if os.Getenv(key) == "" {
-			log.Printf("Warning: %s is not set — token audience will not be validated", key)
+			log.Fatalf("Required env var %s is not set", key)
 		}
 	}
 
@@ -31,32 +26,37 @@ func main() {
 
 	r := gin.Default()
 
-	api := r.Group("/api/v1")
-	{
-		// Auth (public)
-		api.POST("/auth/login", controllers.Login)
-
-		// Authenticated routes
-		auth := api.Group("/")
-		auth.Use(middleware.Auth())
-		{
-			// Current user
-			auth.GET("/me", controllers.Me)
-			auth.PATCH("/me", controllers.UpdateMe)
-
-			// Circles
-			auth.POST("/circles", controllers.CreateCircle)
-			auth.GET("/circles", controllers.GetCircles)
-			auth.GET("/circles/:id", controllers.GetCircle)
-			auth.PATCH("/circles/:id", controllers.UpdateCircle)
-			auth.DELETE("/circles/:id", controllers.DeleteCircle)
-
-			// Tasks
-			auth.POST("/tasks", controllers.CreateTask)
-			auth.GET("/circles/:circle_id/tasks", controllers.GetTasksByCircle)
-			auth.PATCH("/tasks/:id", controllers.UpdateTask)
-			auth.DELETE("/tasks/:id", controllers.DeleteTask)
+	// CORS — allow the Expo dev server and any production origin
+	r.Use(func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", "*")
+		c.Header("Access-Control-Allow-Headers", "Authorization, Content-Type")
+		c.Header("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
 		}
+		c.Next()
+	})
+
+	api := r.Group("/api/v1")
+	api.Use(middleware.Auth())
+	{
+		// Profile
+		api.GET("/me", controllers.Me)
+		api.PATCH("/me", controllers.UpdateMe)
+
+		// Circles (households)
+		api.POST("/circles", controllers.CreateCircle)
+		api.GET("/circles", controllers.GetCircles)
+		api.GET("/circles/:id", controllers.GetCircle)
+		api.PATCH("/circles/:id", controllers.UpdateCircle)
+		api.DELETE("/circles/:id", controllers.DeleteCircle)
+
+		// Tasks
+		api.POST("/tasks", controllers.CreateTask)
+		api.GET("/circles/:circle_id/tasks", controllers.GetTasksByCircle)
+		api.PATCH("/tasks/:id", controllers.UpdateTask)
+		api.DELETE("/tasks/:id", controllers.DeleteTask)
 	}
 
 	port := os.Getenv("PORT")
