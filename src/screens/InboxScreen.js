@@ -9,6 +9,8 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+import { FadeInView } from '../components/FadeInView';
+
 const TAB_BAR_EXTRA = 100;
 
 const FILTERS = [
@@ -44,15 +46,16 @@ export function InboxScreen() {
   const holders = Object.keys(groups).map(id => ({ m: byId[id], tasks: groups[id] }));
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: palette.bg }}
-      contentContainerStyle={{
-        paddingTop: insets.top + 12,
-        paddingHorizontal: 20,
-        paddingBottom: TAB_BAR_EXTRA,
-      }}
-      showsVerticalScrollIndicator={false}
-    >
+    <FadeInView style={{ flex: 1, backgroundColor: palette.bg }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingTop: insets.top + 12,
+          paddingHorizontal: 20,
+          paddingBottom: TAB_BAR_EXTRA,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
       {/* Header */}
       <View style={{ marginBottom: 16 }}>
         <Kicker color={palette.muted}>Inbox</Kicker>
@@ -105,7 +108,8 @@ export function InboxScreen() {
           </Text>
         </View>
       )}
-    </ScrollView>
+      </ScrollView>
+    </FadeInView>
   );
 }
 
