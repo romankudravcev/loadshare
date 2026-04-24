@@ -19,6 +19,7 @@ func CreateCircle(c *gin.Context) {
 	circle := models.Circle{
 		Name:        req.Name,
 		Description: req.Description,
+		OwnerID:     req.OwnerID,
 	}
 
 	if err := db.DB.Create(&circle).Error; err != nil {

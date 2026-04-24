@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jacolate/loadshare/backend/controllers"
@@ -36,7 +37,11 @@ func main() {
 		api.PUT("/tasks/:id", controllers.UpdateTask)
 	}
 
-	if err := r.Run(":8080"); err != nil {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	if err := r.Run(":" + port); err != nil {
 		log.Fatal("Failed to run server: ", err)
 	}
 }

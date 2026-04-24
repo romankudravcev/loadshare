@@ -17,10 +17,16 @@ func CreateTask(c *gin.Context) {
 	}
 
 	task := models.Task{
-		CircleID:    req.CircleID,
-		Title:       req.Title,
-		Description: req.Description,
-		AssignedTo:  req.AssignedTo,
+		CircleID:  req.CircleID,
+		Title:     req.Title,
+		Planner:   req.Planner,
+		Organizer: req.Organizer,
+		Reminder:  req.Reminder,
+		Executor:  req.Executor,
+		When:      req.When,
+		Status:    req.Status,
+		Weight:    req.Weight,
+		Category:  req.Category,
 	}
 
 	if err := db.DB.Create(&task).Error; err != nil {
@@ -58,14 +64,29 @@ func UpdateTask(c *gin.Context) {
 	if req.Title != nil {
 		task.Title = *req.Title
 	}
-	if req.Description != nil {
-		task.Description = *req.Description
+	if req.Planner != nil {
+		task.Planner = req.Planner
 	}
-	if req.AssignedTo != nil {
-		task.AssignedTo = req.AssignedTo
+	if req.Organizer != nil {
+		task.Organizer = req.Organizer
 	}
-	if req.IsCompleted != nil {
-		task.IsCompleted = *req.IsCompleted
+	if req.Reminder != nil {
+		task.Reminder = req.Reminder
+	}
+	if req.Executor != nil {
+		task.Executor = req.Executor
+	}
+	if req.When != nil {
+		task.When = *req.When
+	}
+	if req.Status != nil {
+		task.Status = *req.Status
+	}
+	if req.Weight != nil {
+		task.Weight = *req.Weight
+	}
+	if req.Category != nil {
+		task.Category = *req.Category
 	}
 
 	db.DB.Save(&task)

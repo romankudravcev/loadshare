@@ -14,7 +14,7 @@ var DB *gorm.DB
 func Connect() {
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
-		dsn = "host=localhost user=postgres password=postgres dbname=loadshare port=5432 sslmode=disable"
+		log.Fatal("DATABASE_URL environment variable is not set")
 	}
 
 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
