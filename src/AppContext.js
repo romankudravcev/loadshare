@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import { PALETTES, PERSONAS } from './tokens';
 
-const AppContext = createContext(null);
+export const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
   const [paletteKey, setPaletteKey] = useState('warm');

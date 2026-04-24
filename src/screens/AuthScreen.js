@@ -49,10 +49,10 @@ export function AuthScreen() {
   return (
     <View style={[styles.container, { backgroundColor: palette.bg, paddingTop: insets.top }]}>
       <View style={styles.content}>
-        <Display size={42} style={{ color: palette.ink, marginBottom: 8 }}>
+        <Display size={42} style={{ color: palette.ink, marginBottom: 8, textAlign: 'center' }}>
           loadshare
         </Display>
-        <Text style={[styles.subtitle, { color: palette.muted }]}>
+        <Text style={[styles.subtitle, { color: palette.muted, textAlign: 'center' }]}>
           Manage your household, seamlessly.
         </Text>
         
@@ -60,19 +60,22 @@ export function AuthScreen() {
         
         <View style={styles.buttonContainer}>
           <AuthButton 
-            label="Continue with Apple" 
+            label="Continue with Apple (Recommended)" 
+            icon={<Icon name="check" size={20} color={palette.surface} />}
             primary={true}
             onPress={() => handleMockLogin('apple')}
             loading={loadingType === 'apple'}
           />
           <AuthButton 
-            label="Continue with Google" 
+            label="Continue with Google (Fast)" 
+            icon={<Icon name="check" size={20} color={palette.ink} />}
             primary={false}
             onPress={() => handleMockLogin('google')}
             loading={loadingType === 'google'}
           />
           <AuthButton 
             label="Continue with Email" 
+            icon={<Icon name="inbox" size={20} color={palette.ink} />}
             primary={false}
             onPress={() => handleMockLogin('email')}
             loading={loadingType === 'email'}
