@@ -120,11 +120,13 @@ const styles = StyleSheet.create({
     fontFamily: 'InstrumentSerif_400Regular',
     fontSize: 42,
     marginBottom: 8,
+    textAlign: 'center',
   },
   subtitle: {
     fontFamily: 'DMSans_400Regular',
     fontSize: 16,
     marginBottom: 32,
+    textAlign: 'center',
   },
   section: {
     marginBottom: 32,
