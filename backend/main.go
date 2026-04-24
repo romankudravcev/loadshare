@@ -5,36 +5,58 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jacolate/loadshare/backend/controllers"
-	"github.com/jacolate/loadshare/backend/db"
 	"github.com/joho/godotenv"
+	"github.com/romankudravcev/loadshare/backend/controllers"
+	"github.com/romankudravcev/loadshare/backend/db"
+	"github.com/romankudravcev/loadshare/backend/middleware"
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
+	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, using environment variables")
+	}
+
+	for _, key := range []string{"JWT_SECRET", "DATABASE_URL"} {
+		if os.Getenv(key) == "" {
+			log.Fatalf("Required environment variable %s is not set", key)
+		}
+	}
+	for _, key := range []string{"GOOGLE_CLIENT_ID", "APPLE_APP_BUNDLE_ID"} {
+		if os.Getenv(key) == "" {
+			log.Printf("Warning: %s is not set — token audience will not be validated", key)
+		}
 	}
 
 	db.Connect()
 
 	r := gin.Default()
 
-	// API Routes
 	api := r.Group("/api/v1")
 	{
-		// Auth
+		// Auth (public)
 		api.POST("/auth/login", controllers.Login)
 
-		// Circles
-		api.POST("/circles", controllers.CreateCircle)
-		api.GET("/circles", controllers.GetCircles)
-		api.GET("/circles/:id", controllers.GetCircle)
+		// Authenticated routes
+		auth := api.Group("/")
+		auth.Use(middleware.Auth())
+		{
+			// Current user
+			auth.GET("/me", controllers.Me)
+			auth.PATCH("/me", controllers.UpdateMe)
 
-		// Tasks
-		api.POST("/tasks", controllers.CreateTask)
-		api.GET("/circles/:circle_id/tasks", controllers.GetTasksByCircle)
-		api.PUT("/tasks/:id", controllers.UpdateTask)
+			// Circles
+			auth.POST("/circles", controllers.CreateCircle)
+			auth.GET("/circles", controllers.GetCircles)
+			auth.GET("/circles/:id", controllers.GetCircle)
+			auth.PATCH("/circles/:id", controllers.UpdateCircle)
+			auth.DELETE("/circles/:id", controllers.DeleteCircle)
+
+			// Tasks
+			auth.POST("/tasks", controllers.CreateTask)
+			auth.GET("/circles/:circle_id/tasks", controllers.GetTasksByCircle)
+			auth.PATCH("/tasks/:id", controllers.UpdateTask)
+			auth.DELETE("/tasks/:id", controllers.DeleteTask)
+		}
 	}
 
 	port := os.Getenv("PORT")

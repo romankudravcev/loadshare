@@ -16,6 +16,6 @@ type Circle struct {
 	UpdatedAt   time.Time      `json:"updated_at"`
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
 
-	Users []User `gorm:"many2many:user_circles;" json:"users"`
-	Tasks []Task `json:"tasks"`
+	Users []User `gorm:"many2many:user_circles;" json:"users,omitempty"`
+	Tasks []Task `gorm:"foreignKey:CircleID" json:"tasks,omitempty"`
 }

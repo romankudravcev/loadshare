@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/jacolate/loadshare/backend/models"
+	"github.com/romankudravcev/loadshare/backend/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
