@@ -137,7 +137,7 @@ function SettingsSheet({ visible, onClose }) {
 // ── App shell ─────────────────────────────────────────────────────────────────
 function AppShell() {
   const insets = useSafeAreaInsets();
-  const FEATURE_NAME = 'feat/6-supabase-integration';
+  const FEATURE_NAME = 'feat/7-fancy-animations';
   const { palette, persona, openTask, setOpenTask, activeTab, setActiveTab, loading } = useApp();
   const [settingsOpen, setSettingsOpen] = useState(false);
 

@@ -1,9 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from '../AppContext';
 import { ROLES, weightOf } from '../tokens';
 import { Avatar, RoleGlyph, Kicker, Display, WeightBars, Dot, Icon } from '../components/primitives';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+import { FadeInView } from '../components/FadeInView';
 
 const TAB_BAR_EXTRA = 100;
 
@@ -18,6 +24,11 @@ export function InboxScreen() {
   const insets = useSafeAreaInsets();
   const { palette, persona, setOpenTask } = useApp();
   const [filter, setFilter] = useState('all');
+
+  const handleFilter = (id) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setFilter(id);
+  };
 
   const me = persona.members[0];
   const byId = Object.fromEntries(persona.members.map(m => [m.id, m]));
@@ -35,15 +46,16 @@ export function InboxScreen() {
   const holders = Object.keys(groups).map(id => ({ m: byId[id], tasks: groups[id] }));
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: palette.bg }}
-      contentContainerStyle={{
-        paddingTop: insets.top + 12,
-        paddingHorizontal: 20,
-        paddingBottom: TAB_BAR_EXTRA,
-      }}
-      showsVerticalScrollIndicator={false}
-    >
+    <FadeInView style={{ flex: 1, backgroundColor: palette.bg }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingTop: insets.top + 12,
+          paddingHorizontal: 20,
+          paddingBottom: TAB_BAR_EXTRA,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
       {/* Header */}
       <View style={{ marginBottom: 16 }}>
         <Kicker color={palette.muted}>Inbox</Kicker>
@@ -60,7 +72,7 @@ export function InboxScreen() {
         <View style={{ flexDirection: 'row', gap: 8 }}>
           {FILTERS.map(f => (
             <FilterChip key={f.id} palette={palette} active={filter === f.id}
-              onPress={() => setFilter(f.id)} label={f.label} />
+              onPress={() => handleFilter(f.id)} label={f.label} />
           ))}
         </View>
       </ScrollView>
@@ -96,7 +108,8 @@ export function InboxScreen() {
           </Text>
         </View>
       )}
-    </ScrollView>
+      </ScrollView>
+    </FadeInView>
   );
 }
 
@@ -108,6 +121,11 @@ function InboxRow({ task, persona, palette, me, byId, onPress }) {
   const doer = byId[task.executor];
   const holder = byId[task.reminder];
   const isMine = holder?.id === me.id;
+
+  const handlePickUp = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setPicked(p => !p);
+  };
 
   return (
     <View style={[styles.inboxCard, {
@@ -147,7 +165,7 @@ function InboxRow({ task, persona, palette, me, byId, onPress }) {
       {/* Action strip */}
       {!isMine ? (
         <View style={[styles.actionStrip, { borderColor: palette.line }]}>
-          <TouchableOpacity onPress={() => setPicked(p => !p)}
+          <TouchableOpacity onPress={handlePickUp}
             style={[styles.actionBtn, { flex: 1 }]}
             activeOpacity={0.7}>
             <Icon name={picked ? 'check' : 'handoff'} size={14}
@@ -156,16 +174,17 @@ function InboxRow({ task, persona, palette, me, byId, onPress }) {
               {picked ? `Picked up · ${holder?.name} notified` : `Pick up from ${holder?.name}`}
             </Text>
           </TouchableOpacity>
-          <View style={[styles.actionDivider, { backgroundColor: palette.line }]} />
-          <TouchableOpacity 
-            style={styles.actionBtn} 
-            activeOpacity={0.7}
-            onPress={() => setReminded(true)}>
-            <Icon name="bell" size={14} color={reminded ? palette.accent : palette.muted} />
-            <Text style={[styles.actionText, { color: reminded ? palette.accent : palette.muted }]}>
-              {reminded ? 'Reminded' : 'Remind'}
-            </Text>
-          </TouchableOpacity>
+          {!picked && (
+            <>
+              <View style={[styles.actionDivider, { backgroundColor: palette.line }]} />
+              <TouchableOpacity style={styles.actionBtn} activeOpacity={0.7} onPress={() => setReminded(true)}>
+                <Icon name="bell" size={14} color={reminded ? palette.accent : palette.muted} />
+                <Text style={[styles.actionText, { color: reminded ? palette.accent : palette.muted }]}>
+                  {reminded ? 'Reminded' : 'Remind'}
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       ) : (
         <View style={[styles.waitingStrip, { borderColor: palette.line, backgroundColor: palette.surfaceAlt }]}>

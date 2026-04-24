@@ -8,6 +8,8 @@ import { useApp } from '../AppContext';
 import { ROLES, WEIGHTS, weightOf, computeLoad, memberArc } from '../tokens';
 import { Avatar, RoleGlyph, Kicker, WeightBars, Icon } from '../components/primitives';
 
+import { FadeInView } from '../components/FadeInView';
+
 const TAB_BAR_EXTRA = 100;
 
 const WHENS = ['Today', 'Tomorrow', 'This week', 'Next week'];
@@ -47,16 +49,17 @@ export function CreateScreen() {
   };
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: palette.bg }}
-      contentContainerStyle={{
-        paddingTop: insets.top + 12,
-        paddingHorizontal: 20,
-        paddingBottom: TAB_BAR_EXTRA,
-      }}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-    >
+    <FadeInView style={{ flex: 1, backgroundColor: palette.bg }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingTop: insets.top + 12,
+          paddingHorizontal: 20,
+          paddingBottom: TAB_BAR_EXTRA,
+        }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
       {/* Header */}
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={handleCancel}>
@@ -200,7 +203,8 @@ export function CreateScreen() {
             : 'each role-holder.'}
         </Text>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </FadeInView>
   );
 }
 
