@@ -7,7 +7,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from '../AppContext';
 import { Display } from '../components/primitives';
-import { signIn, signUp, resetPassword } from '../services/auth';
+import { signIn, signUp, resetPassword, signInWithGoogle } from '../services/auth';
 
 function AuthInput({ label, value, onChangeText, secureTextEntry, autoCapitalize, palette, keyboardType }) {
   return (
@@ -47,6 +47,22 @@ function PrimaryButton({ label, onPress, loading, palette }) {
   );
 }
 
+function OutlinedButton({ label, onPress, loading, disabled, palette }) {
+  return (
+    <TouchableOpacity
+      activeOpacity={0.75}
+      style={[styles.button, { borderWidth: 0.5, borderColor: palette.lineStrong }]}
+      onPress={onPress}
+      disabled={loading || disabled}
+    >
+      {loading
+        ? <ActivityIndicator color={palette.ink} size="small" />
+        : <Text style={[styles.buttonText, { color: palette.ink }]}>{label}</Text>
+      }
+    </TouchableOpacity>
+  );
+}
+
 function TextButton({ label, onPress, palette }) {
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={styles.textBtn}>
@@ -63,25 +79,24 @@ export function AuthScreen() {
   const [name, setName]       = useState('');
   const [email, setEmail]     = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(null); // 'email' | 'google' | null
 
   async function handleSignIn() {
     if (!email || !password) return Alert.alert('Fill in all fields');
-    setLoading(true);
+    setLoading('email');
     try {
       await signIn({ email, password });
-      // onAuthStateChange in AppContext picks up the new session automatically
     } catch (err) {
       Alert.alert('Sign in failed', err.message);
     } finally {
-      setLoading(false);
+      setLoading(null);
     }
   }
 
   async function handleSignUp() {
     if (!name || !email || !password) return Alert.alert('Fill in all fields');
     if (password.length < 6) return Alert.alert('Password must be at least 6 characters');
-    setLoading(true);
+    setLoading('email');
     try {
       await signUp({ email, password, name });
       Alert.alert(
@@ -92,13 +107,13 @@ export function AuthScreen() {
     } catch (err) {
       Alert.alert('Sign up failed', err.message);
     } finally {
-      setLoading(false);
+      setLoading(null);
     }
   }
 
   async function handleReset() {
     if (!email) return Alert.alert('Enter your email address first');
-    setLoading(true);
+    setLoading('email');
     try {
       await resetPassword(email);
       Alert.alert('Email sent', 'Check your inbox for a password reset link.', [
@@ -107,9 +122,22 @@ export function AuthScreen() {
     } catch (err) {
       Alert.alert('Failed', err.message);
     } finally {
-      setLoading(false);
+      setLoading(null);
     }
   }
+
+  async function handleGoogle() {
+    setLoading('google');
+    try {
+      await signInWithGoogle();
+    } catch (err) {
+      Alert.alert('Google sign in failed', err.message);
+    } finally {
+      setLoading(null);
+    }
+  }
+
+  const busy = loading !== null;
 
   return (
     <KeyboardAvoidingView
@@ -135,63 +163,55 @@ export function AuthScreen() {
           </Text>
 
           {mode === 'signup' && (
-            <AuthInput
-              label="Your name"
-              value={name}
-              onChangeText={setName}
-              autoCapitalize="words"
-              palette={palette}
-            />
+            <AuthInput label="Your name" value={name} onChangeText={setName}
+              autoCapitalize="words" palette={palette} />
           )}
 
-          <AuthInput
-            label="Email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            palette={palette}
-          />
+          <AuthInput label="Email" value={email} onChangeText={setEmail}
+            keyboardType="email-address" palette={palette} />
 
           {mode !== 'reset' && (
-            <AuthInput
-              label="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              palette={palette}
-            />
+            <AuthInput label="Password" value={password} onChangeText={setPassword}
+              secureTextEntry palette={palette} />
           )}
 
           <PrimaryButton
             label={mode === 'signin' ? 'Sign in' : mode === 'signup' ? 'Create account' : 'Send reset link'}
             onPress={mode === 'signin' ? handleSignIn : mode === 'signup' ? handleSignUp : handleReset}
-            loading={loading}
+            loading={loading === 'email'}
             palette={palette}
           />
         </View>
+
+        {/* OAuth */}
+        {mode !== 'reset' && (
+          <View style={styles.oauthSection}>
+            <View style={styles.dividerRow}>
+              <View style={[styles.dividerLine, { backgroundColor: palette.lineStrong }]} />
+              <Text style={[styles.dividerText, { color: palette.muted }]}>or</Text>
+              <View style={[styles.dividerLine, { backgroundColor: palette.lineStrong }]} />
+            </View>
+
+            <OutlinedButton
+              label="Continue with Google"
+              onPress={handleGoogle}
+              loading={loading === 'google'}
+              disabled={busy}
+              palette={palette}
+            />
+          </View>
+        )}
 
         {/* Mode switchers */}
         <View style={styles.links}>
           {mode === 'signin' && (
             <>
-              <TextButton
-                label="No account yet? Sign up"
-                onPress={() => setMode('signup')}
-                palette={palette}
-              />
-              <TextButton
-                label="Forgot password?"
-                onPress={() => setMode('reset')}
-                palette={palette}
-              />
+              <TextButton label="No account yet? Sign up" onPress={() => setMode('signup')} palette={palette} />
+              <TextButton label="Forgot password?" onPress={() => setMode('reset')} palette={palette} />
             </>
           )}
           {mode !== 'signin' && (
-            <TextButton
-              label="Back to sign in"
-              onPress={() => setMode('signin')}
-              palette={palette}
-            />
+            <TextButton label="Back to sign in" onPress={() => setMode('signin')} palette={palette} />
           )}
         </View>
 
@@ -252,6 +272,23 @@ const styles = StyleSheet.create({
   buttonText: {
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 16,
+  },
+  oauthSection: {
+    marginBottom: 12,
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 16,
+    gap: 12,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 0.5,
+  },
+  dividerText: {
+    fontFamily: 'DMSans_400Regular',
+    fontSize: 13,
   },
   links: {
     gap: 4,

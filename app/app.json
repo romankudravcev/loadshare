@@ -15,13 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.loadshare.app",
-      "usesAppleSignIn": true,
-      "config": {
-        "googleSignIn": {
-          "reservedClientId": "com.googleusercontent.apps.YOUR_REVERSED_CLIENT_ID"
-        }
-      }
+      "bundleIdentifier": "com.loadshare.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -35,7 +29,6 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-apple-authentication",
       "expo-secure-store"
     ]
   }
