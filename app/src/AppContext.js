@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { PALETTES, PERSONAS } from './tokens';
 import { api as mockApi } from './services/mockApi';
-import { backendApi } from './services/api';
+import { circles as circlesApi } from './services/circles';
+import { tasks as tasksApi, circleToPersona } from './services/tasks';
+import { profiles as profilesApi } from './services/profiles';
 import { getSession, onAuthStateChange, signOut as authSignOut } from './services/auth';
 
 export const AppContext = createContext(null);
@@ -16,14 +18,16 @@ export function AppProvider({ children }) {
   const [activeTab, setActiveTab]     = useState('dashboard');
   const [toastMessage, setToastMessage] = useState(null);
 
-  // Auth — driven by Supabase session
   const [session, setSession]         = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profile, setProfile]         = useState(null);
 
+  // Active circle when using real data
+  const [activeCircle, setActiveCircle] = useState(null);
+
   const palette = PALETTES[paletteKey];
 
-  // ── Auth bootstrap ──────────────────────────────────────────────────────────
+  // ── Auth bootstrap ────────────────────────────────────────────────────────
   useEffect(() => {
     getSession().then(s => {
       setSession(s);
@@ -38,22 +42,45 @@ export function AppProvider({ children }) {
     });
   }, []);
 
-  // ── Persona / household data ────────────────────────────────────────────────
-  // Uses the mock API for local demo data while backend integration is in progress.
-  // Swap mockApi for backendApi once your circle/task endpoints are wired.
+  // ── Data loading ──────────────────────────────────────────────────────────
+  // Uses mockApi for unauthenticated/demo mode; real Supabase data once logged in
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const data = await mockApi.getPersona(personaKey);
-      setPersona(data);
+      if (isAuthenticated) {
+        try {
+          const circleList = await circlesApi.list();
+          if (circleList.length > 0) {
+            const c = circleList[0];
+            const taskList = await tasksApi.listByCircle(c.id);
+            setActiveCircle(c);
+            setPersona(circleToPersona(c, taskList));
+          } else {
+            setPersona(null);
+          }
+        } catch (err) {
+          console.error('Failed to load circle data:', err);
+          setPersona(null);
+        }
+      } else {
+        const data = await mockApi.getPersona(personaKey);
+        setPersona(data);
+      }
       setLoading(false);
     };
     load();
-  }, [personaKey]);
+  }, [isAuthenticated, personaKey]);
 
   const refreshPersona = async () => {
-    const data = await mockApi.getPersona(personaKey);
-    setPersona(data);
+    if (isAuthenticated && activeCircle) {
+      const taskList = await tasksApi.listByCircle(activeCircle.id);
+      const fresh = await circlesApi.get(activeCircle.id);
+      setActiveCircle(fresh);
+      setPersona(circleToPersona(fresh, taskList));
+    } else {
+      const data = await mockApi.getPersona(personaKey);
+      setPersona(data);
+    }
   };
 
   const showToast = (message) => {
@@ -63,7 +90,6 @@ export function AppProvider({ children }) {
 
   const signOut = async () => {
     await authSignOut();
-    // onAuthStateChange clears session/profile automatically
   };
 
   return (
@@ -75,8 +101,10 @@ export function AppProvider({ children }) {
       signOut,
       activeTab, setActiveTab,
       loading, refreshPersona,
-      api: mockApi,
-      backendApi,
+      activeCircle,
+      circles: circlesApi,
+      tasks:   tasksApi,
+      profiles: profilesApi,
       toastMessage, showToast,
     }}>
       {children}
