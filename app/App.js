@@ -15,27 +15,19 @@ import {
   DMSans_600SemiBold,
   DMSans_700Bold,
 } from '@expo-google-fonts/dm-sans';
+import * as SecureStore from 'expo-secure-store';
 
 import { AppProvider, useApp } from './src/AppContext';
 import { ProfileSetupScreen } from './src/screens/ProfileSetupScreen';
 import { AppIntroScreen }     from './src/screens/AppIntroScreen';
-import { DashboardScreen } from './src/screens/DashboardScreen';
-import { CreateScreen }   from './src/screens/CreateScreen';
-import { InboxScreen }    from './src/screens/InboxScreen';
-import { StartupScreen }  from './src/screens/StartupScreen';
-import { AuthScreen }     from './src/screens/AuthScreen';
-import { TaskSheet }      from './src/components/TaskSheet';
-import { Icon }           from './src/components/primitives';
-import { Toast }          from './src/components/Toast';
-import * as Notifications from 'expo-notifications';
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
+import { DashboardScreen }    from './src/screens/DashboardScreen';
+import { CreateScreen }       from './src/screens/CreateScreen';
+import { InboxScreen }        from './src/screens/InboxScreen';
+import { StartupScreen }      from './src/screens/StartupScreen';
+import { AuthScreen }         from './src/screens/AuthScreen';
+import { TaskSheet }          from './src/components/TaskSheet';
+import { Icon }               from './src/components/primitives';
+import { Toast }              from './src/components/Toast';
 
 // ── Floating tab bar ──────────────────────────────────────────────────────────
 function FloatingTabBar({ active, onChange }) {
@@ -106,7 +98,6 @@ function SettingsSheet({ visible, onClose }) {
           paddingBottom: Math.max(insets.bottom + 16, 24),
         }]}>
           <View style={[styles.handle, { backgroundColor: palette.lineStrong }]} />
-
           <Text style={[styles.settingsTitle, { color: palette.ink }]}>Preferences</Text>
 
           <Text style={[styles.settingsSectionLabel, { color: palette.muted }]}>Palette</Text>
@@ -147,47 +138,33 @@ function SettingsSheet({ visible, onClose }) {
 // ── App shell ─────────────────────────────────────────────────────────────────
 function AppShell() {
   const insets = useSafeAreaInsets();
-  const FEATURE_NAME = 'feat/8-notifications';
   const { palette, persona, openTask, setOpenTask, activeTab, setActiveTab, loading } = useApp();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   if (loading || !persona) {
     return (
       <View style={{ flex: 1, backgroundColor: palette.bg, alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: palette.ink, fontFamily: 'DMSans_500Medium' }}>Loading data...</Text>
+        <Text style={{ color: palette.ink, fontFamily: 'DMSans_500Medium' }}>Loading…</Text>
       </View>
     );
   }
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.bg }}>
-      <View style={{ backgroundColor: palette.ink, paddingTop: insets.top, paddingBottom: 8, alignItems: 'center' }}>
-        <Text style={{ color: palette.surface, fontFamily: 'DMSans_700Bold', fontSize: 12, letterSpacing: 1, textTransform: 'uppercase' }}>
-          Testing: {FEATURE_NAME}
-        </Text>
-      </View>
-      {/* Active screen */}
       {activeTab === 'dashboard' && <DashboardScreen />}
       {activeTab === 'create'    && <CreateScreen />}
       {activeTab === 'inbox'     && <InboxScreen />}
 
-      {/* Floating tab bar — positioned over content */}
       <FloatingTabBar active={activeTab} onChange={setActiveTab} />
 
-      {/* Overlays */}
       <TaskSheet task={openTask} persona={persona} palette={palette}
         onClose={() => setOpenTask(null)} />
-
       <SettingsSheet visible={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <Toast />
 
-      {/* Floating preferences dot */}
       <TouchableOpacity
         onPress={() => setSettingsOpen(true)}
-        style={[styles.settingsFab, {
-          backgroundColor: palette.surface,
-          borderColor: palette.line,
-        }]}>
+        style={[styles.settingsFab, { backgroundColor: palette.surface, borderColor: palette.line }]}>
         <Icon name="dots" size={18} color={palette.muted} />
       </TouchableOpacity>
     </View>
@@ -195,68 +172,35 @@ function AppShell() {
 }
 
 // ── App Router ────────────────────────────────────────────────────────────────
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
 function AppRouter() {
   const { isAuthenticated, profile } = useApp();
-  const [startupDone, setStartupDone] = useState(false);
-  const [introDone, setIntroDone] = useState(false);
+  const [startupDone, setStartupDone]   = useState(false);
+  const [introDone, setIntroDone]       = useState(false);
   const [introChecked, setIntroChecked] = useState(false);
 
   React.useEffect(() => {
-    async function checkIntro() {
-      try {
-        const value = await AsyncStorage.getItem('@intro_done');
-        if (value === 'true') {
-          setIntroDone(true);
-        }
-      } catch (e) {
-        // error
-      }
-      setIntroChecked(true);
-    }
-    checkIntro();
+    SecureStore.getItemAsync('@intro_done')
+      .then(v => { if (v === 'true') setIntroDone(true); })
+      .catch(() => {})
+      .finally(() => setIntroChecked(true));
   }, []);
 
   const handleIntroComplete = async () => {
-    try {
-      await AsyncStorage.setItem('@intro_done', 'true');
-    } catch (e) {
-      // error
-    }
+    await SecureStore.setItemAsync('@intro_done', 'true').catch(() => {});
     setIntroDone(true);
   };
 
   if (!startupDone || !introChecked) {
     return <StartupScreen onComplete={() => setStartupDone(true)} />;
   }
-
-  if (!introDone) {
-    return <AppIntroScreen onComplete={handleIntroComplete} />;
-  }
-
-  if (!isAuthenticated) {
-    return <AuthScreen />;
-  }
-
-  if (!profile) {
-    return <ProfileSetupScreen />;
-  }
-
+  if (!introDone)       return <AppIntroScreen onComplete={handleIntroComplete} />;
+  if (!isAuthenticated) return <AuthScreen />;
+  if (!profile)         return <ProfileSetupScreen />;
   return <AppShell />;
 }
 
 // ── Root ──────────────────────────────────────────────────────────────────────
 export default function Root() {
-  React.useEffect(() => {
-    (async () => {
-      const { status } = await Notifications.requestPermissionsAsync();
-      if (status !== 'granted') {
-        console.log('Notification permissions not granted');
-      }
-    })();
-  }, []);
-
   const [fontsLoaded] = useFonts({
     InstrumentSerif_400Regular,
     InstrumentSerif_400Regular_Italic,
@@ -279,7 +223,6 @@ export default function Root() {
 }
 
 const styles = StyleSheet.create({
-  // Tab bar
   tabBarOuter: {
     position: 'absolute', left: 0, right: 0, bottom: 0,
     paddingHorizontal: 14, paddingTop: 8,
@@ -289,65 +232,35 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 10,
     borderRadius: 28, borderWidth: 0.5,
     backgroundColor: 'rgba(255,253,248,0.9)',
-    shadowColor: '#000',
-    shadowOpacity: 0.09, shadowRadius: 14,
-    shadowOffset: { width: 0, height: 5 },
-    elevation: 10,
+    shadowColor: '#000', shadowOpacity: 0.09, shadowRadius: 14,
+    shadowOffset: { width: 0, height: 5 }, elevation: 10,
   },
-  tabBtn: {
-    flex: 1, alignItems: 'center', gap: 3, paddingVertical: 4,
-  },
-  tabLabel: {
-    fontFamily: 'DMSans_500Medium', fontSize: 10, letterSpacing: 0.2,
-  },
+  tabBtn: { flex: 1, alignItems: 'center', gap: 3, paddingVertical: 4 },
+  tabLabel: { fontFamily: 'DMSans_500Medium', fontSize: 10, letterSpacing: 0.2 },
   createCircle: {
     width: 40, height: 40, borderRadius: 20,
     alignItems: 'center', justifyContent: 'center',
-    marginTop: -4, marginBottom: 0,
-    shadowColor: '#000', shadowOpacity: 0.2,
-    shadowRadius: 8, shadowOffset: { width: 0, height: 3 },
-    elevation: 5,
+    marginTop: -4,
+    shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 }, elevation: 5,
   },
-  // Settings FAB
   settingsFab: {
     position: 'absolute', right: 16, bottom: 110,
-    width: 36, height: 36, borderRadius: 18,
-    borderWidth: 0.5,
+    width: 36, height: 36, borderRadius: 18, borderWidth: 0.5,
     alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#000', shadowOpacity: 0.07,
-    shadowRadius: 6, shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
+    shadowColor: '#000', shadowOpacity: 0.07, shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 }, elevation: 3,
   },
-  // Settings sheet
-  settingsOverlay: {
-    flex: 1, justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.3)',
-  },
-  settingsSheet: {
-    borderTopLeftRadius: 22, borderTopRightRadius: 22,
-    padding: 20,
-  },
-  handle: {
-    width: 36, height: 4, borderRadius: 2,
-    alignSelf: 'center', marginBottom: 20,
-  },
-  settingsTitle: {
-    fontFamily: 'InstrumentSerif_400Regular',
-    fontSize: 26, marginBottom: 22,
-  },
+  settingsOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.3)' },
+  settingsSheet: { borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: 20 },
+  handle: { width: 36, height: 4, borderRadius: 2, alignSelf: 'center', marginBottom: 20 },
+  settingsTitle: { fontFamily: 'InstrumentSerif_400Regular', fontSize: 26, marginBottom: 22 },
   settingsSectionLabel: {
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 11, letterSpacing: 1.4,
-    textTransform: 'uppercase', marginBottom: 10,
+    fontFamily: 'DMSans_500Medium', fontSize: 11,
+    letterSpacing: 1.4, textTransform: 'uppercase', marginBottom: 10,
   },
   settingsRow: { flexDirection: 'row', gap: 8, marginBottom: 22 },
-  settingsChip: {
-    paddingHorizontal: 16, paddingVertical: 9,
-    borderRadius: 20, borderWidth: 0.5,
-  },
-  settingsChipWide: {
-    paddingHorizontal: 16, paddingVertical: 12,
-    borderRadius: 14, borderWidth: 0.5,
-  },
+  settingsChip: { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 20, borderWidth: 0.5 },
+  settingsChipWide: { paddingHorizontal: 16, paddingVertical: 12, borderRadius: 14, borderWidth: 0.5 },
   settingsChipText: { fontFamily: 'DMSans_500Medium', fontSize: 14 },
 });
