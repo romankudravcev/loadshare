@@ -4,6 +4,7 @@ import { api as mockApi } from './services/mockApi';
 import { circles as circlesApi } from './services/circles';
 import { tasks as tasksApi, circleToPersona } from './services/tasks';
 import { profiles as profilesApi } from './services/profiles';
+import { joinRequests as joinReqApi } from './services/joinRequests';
 import { getSession, onAuthStateChange, signOut as authSignOut } from './services/auth';
 
 export const AppContext = createContext(null);
@@ -22,19 +23,19 @@ export function AppProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profile, setProfile]         = useState(null);
 
-  // Active circle when using real data
   const [activeCircle, setActiveCircle] = useState(null);
+  const [circleList, setCircleList]     = useState([]);
+  const [hasCircle, setHasCircle]       = useState(false);
 
   const palette = PALETTES[paletteKey];
 
-  // ── Auth bootstrap ────────────────────────────────────────────────────────
+  // ── Auth bootstrap ──────────────────────────────────────────────────────────
   useEffect(() => {
     getSession().then(s => {
       setSession(s);
       setIsAuthenticated(!!s);
       if (s?.user) setProfile(s.user);
     });
-
     return onAuthStateChange(s => {
       setSession(s);
       setIsAuthenticated(!!s);
@@ -42,20 +43,22 @@ export function AppProvider({ children }) {
     });
   }, []);
 
-  // ── Data loading ──────────────────────────────────────────────────────────
-  // Uses mockApi for unauthenticated/demo mode; real Supabase data once logged in
+  // ── Data loading ────────────────────────────────────────────────────────────
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       if (isAuthenticated) {
         try {
-          const circleList = await circlesApi.list();
-          if (circleList.length > 0) {
-            const c = circleList[0];
+          const list = await circlesApi.list();
+          setCircleList(list);
+          setHasCircle(list.length > 0);
+          if (list.length > 0) {
+            const c = list[0];
             const taskList = await tasksApi.listByCircle(c.id);
             setActiveCircle(c);
             setPersona(circleToPersona(c, taskList));
           } else {
+            setActiveCircle(null);
             setPersona(null);
           }
         } catch (err) {
@@ -63,6 +66,9 @@ export function AppProvider({ children }) {
           setPersona(null);
         }
       } else {
+        setCircleList([]);
+        setHasCircle(false);
+        setActiveCircle(null);
         const data = await mockApi.getPersona(personaKey);
         setPersona(data);
       }
@@ -72,11 +78,23 @@ export function AppProvider({ children }) {
   }, [isAuthenticated, personaKey]);
 
   const refreshPersona = async () => {
-    if (isAuthenticated && activeCircle) {
-      const taskList = await tasksApi.listByCircle(activeCircle.id);
-      const fresh = await circlesApi.get(activeCircle.id);
-      setActiveCircle(fresh);
-      setPersona(circleToPersona(fresh, taskList));
+    if (isAuthenticated) {
+      try {
+        const list = await circlesApi.list();
+        setCircleList(list);
+        setHasCircle(list.length > 0);
+        if (list.length > 0) {
+          const c = list[0];
+          const taskList = await tasksApi.listByCircle(c.id);
+          setActiveCircle(c);
+          setPersona(circleToPersona(c, taskList));
+        } else {
+          setActiveCircle(null);
+          setPersona(null);
+        }
+      } catch (err) {
+        console.error('refreshPersona error:', err);
+      }
     } else {
       const data = await mockApi.getPersona(personaKey);
       setPersona(data);
@@ -92,6 +110,11 @@ export function AppProvider({ children }) {
     await authSignOut();
   };
 
+  // The currently logged-in member within the active persona/circle
+  const currentMember = isAuthenticated && persona && session
+    ? (persona.members.find(m => m.id === session.user.id) ?? persona.members[0])
+    : persona?.members?.[0] ?? null;
+
   return (
     <AppContext.Provider value={{
       palette, paletteKey, setPaletteKey,
@@ -101,10 +124,12 @@ export function AppProvider({ children }) {
       signOut,
       activeTab, setActiveTab,
       loading, refreshPersona,
-      activeCircle,
-      circles: circlesApi,
-      tasks:   tasksApi,
-      profiles: profilesApi,
+      activeCircle, circleList, hasCircle,
+      currentMember,
+      circles:      circlesApi,
+      tasks:        tasksApi,
+      profiles:     profilesApi,
+      joinRequests: joinReqApi,
       toastMessage, showToast,
     }}>
       {children}
