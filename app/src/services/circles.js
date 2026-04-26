@@ -30,14 +30,19 @@ export const circles = {
   },
 
   create: async (name) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    const { data, error } = await supabase
+    // getSession() ensures the JWT is loaded into the client before we insert.
+    // Without this the first request after app launch can go out as anon.
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) throw new Error('Not authenticated');
+
+    // No .select() here — the SELECT policy checks circle_members, which the
+    // trigger populates in the same transaction. PostgREST evaluates RETURNING
+    // before the trigger result is visible to RLS, so we'd get a false denial.
+    // The caller always calls refreshPersona() after this anyway.
+    const { error } = await supabase
       .from('circles')
-      .insert({ name, owner_id: user.id })
-      .select()
-      .single();
+      .insert({ name, owner_id: session.user.id });
     if (error) throw error;
-    return data;
   },
 
   update: async (id, updates) => {
