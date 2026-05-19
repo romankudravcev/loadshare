@@ -1,4 +1,4 @@
-import { supabase } from './db';
+import { supabase } from "./db";
 
 const CIRCLE_WITH_MEMBERS = `
   *,
@@ -12,27 +12,44 @@ const CIRCLE_WITH_MEMBERS = `
 export const circles = {
   list: async () => {
     const { data, error } = await supabase
-      .from('circles')
+      .from("circles")
       .select(CIRCLE_WITH_MEMBERS)
-      .order('created_at', { ascending: true });
+      .order("created_at", { ascending: true });
     if (error) throw error;
     return data ?? [];
   },
 
   get: async (id) => {
     const { data, error } = await supabase
-      .from('circles')
+      .from("circles")
       .select(CIRCLE_WITH_MEMBERS)
-      .eq('id', id)
+      .eq("id", id)
       .single();
     if (error) throw error;
     return data;
   },
 
-  create: async (name) => {
-    const { data: { user } } = await supabase.auth.getUser();
+  getDefault: async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     const { data, error } = await supabase
-      .from('circles')
+      .from("circle_members")
+      .select("circles(" + CIRCLE_WITH_MEMBERS + ")")
+      .eq("user_id", user.id)
+      .order("joined_at", { ascending: true })
+      .limit(1)
+      .single();
+    if (error) throw error;
+    return data?.circles ?? null;
+  },
+
+  create: async (name) => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    const { data, error } = await supabase
+      .from("circles")
       .insert({ name, owner_id: user.id })
       .select()
       .single();
@@ -42,9 +59,9 @@ export const circles = {
 
   update: async (id, updates) => {
     const { data, error } = await supabase
-      .from('circles')
+      .from("circles")
       .update(updates)
-      .eq('id', id)
+      .eq("id", id)
       .select()
       .single();
     if (error) throw error;
@@ -52,20 +69,20 @@ export const circles = {
   },
 
   delete: async (id) => {
-    const { error } = await supabase.from('circles').delete().eq('id', id);
+    const { error } = await supabase.from("circles").delete().eq("id", id);
     if (error) throw error;
   },
 
   addMember: async (circleId, userId) => {
     const { error } = await supabase
-      .from('circle_members')
+      .from("circle_members")
       .insert({ circle_id: circleId, user_id: userId });
     if (error) throw error;
   },
 
   removeMember: async (circleId, userId) => {
     const { error } = await supabase
-      .from('circle_members')
+      .from("circle_members")
       .delete()
       .match({ circle_id: circleId, user_id: userId });
     if (error) throw error;

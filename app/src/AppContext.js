@@ -49,11 +49,10 @@ export function AppProvider({ children }) {
       setLoading(true);
       if (isAuthenticated) {
         try {
-          const list = await circlesApi.list();
-          setCircleList(list);
-          setHasCircle(list.length > 0);
-          if (list.length > 0) {
-            const c = list[0];
+          const c = await circlesApi.getDefault();
+          setHasCircle(!!c);
+          setCircleList(c ? [c] : []);
+          if (c) {
             const taskList = await tasksApi.listByCircle(c.id);
             setActiveCircle(c);
             setPersona(circleToPersona(c, taskList));
@@ -80,11 +79,10 @@ export function AppProvider({ children }) {
   const refreshPersona = async () => {
     if (isAuthenticated) {
       try {
-        const list = await circlesApi.list();
-        setCircleList(list);
-        setHasCircle(list.length > 0);
-        if (list.length > 0) {
-          const c = list[0];
+        const c = await circlesApi.getDefault();
+        setHasCircle(!!c);
+        setCircleList(c ? [c] : []);
+        if (c) {
           const taskList = await tasksApi.listByCircle(c.id);
           setActiveCircle(c);
           setPersona(circleToPersona(c, taskList));
