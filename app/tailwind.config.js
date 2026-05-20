@@ -1,0 +1,68 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    './App.{js,jsx,ts,tsx}',
+    './index.js',
+    './src/**/*.{js,jsx,ts,tsx}',
+  ],
+  presets: [require('nativewind/preset')],
+  theme: {
+    // Replace Tailwind's default font sizes with our design scale
+    fontSize: {
+      micro: '9px',
+      '2xs':  '10px',
+      xs:     '11px',
+      sm:     '12px',
+      base:   '13px',
+      md:     '14px',
+      lg:     '16px',
+      xl:     '17px',
+      '2xl':  '24px',
+      '3xl':  '26px',
+      '4xl':  '28px',
+      '5xl':  '34px',
+      '6xl':  '38px',
+      '7xl':  '42px',
+      '8xl':  '48px',
+    },
+    extend: {
+      colors: {
+        canvas:       '#F4EFE6',
+        surface:      '#FBF7F2',
+        'surface-alt':'#EFE9DD',
+        ink:          '#2B2A26',
+        'ink-soft':   '#4A4843',
+        muted:        '#8C8779',
+        line:         'rgba(43,42,38,0.08)',
+        'line-strong':'rgba(43,42,38,0.18)',
+        accent:       '#B8A88A',
+        nudge:        '#7A8471',
+        warn:         '#B76A4C',
+        planner:      '#9EA88F',
+        organizer:    '#C9A87C',
+        reminder:     '#B8897A',
+        executor:     '#8A9BA4',
+      },
+      fontFamily: {
+        serif:        ['InstrumentSerif_400Regular'],
+        'serif-i':    ['InstrumentSerif_400Regular_Italic'],
+        sans:         ['DMSans_400Regular'],
+        'sans-i':     ['DMSans_400Regular_Italic'],
+        'sans-md':    ['DMSans_500Medium'],
+        'sans-bold':  ['DMSans_600SemiBold'],
+        'sans-heavy': ['DMSans_700Bold'],
+      },
+      borderWidth: {
+        half: '0.5px',
+      },
+      letterSpacing: {
+        kicker:    '1.3px',
+        'kicker-lg':'1.4px',
+        tagline:   '2.2px',
+        micro:     '0.3px',
+        role:      '0.4px',
+      },
+    },
+  },
+  plugins: [],
+};

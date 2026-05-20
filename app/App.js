@@ -1,23 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View, Text, TouchableOpacity, StyleSheet, Modal, Share, ActivityIndicator,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, Share, ActivityIndicator } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
-import {
-  InstrumentSerif_400Regular,
-  InstrumentSerif_400Regular_Italic,
-} from '@expo-google-fonts/instrument-serif';
-import {
-  DMSans_400Regular,
-  DMSans_400Regular_Italic,
-  DMSans_500Medium,
-  DMSans_600SemiBold,
-  DMSans_700Bold,
-} from '@expo-google-fonts/dm-sans';
+import { InstrumentSerif_400Regular, InstrumentSerif_400Regular_Italic } from '@expo-google-fonts/instrument-serif';
+import { DMSans_400Regular, DMSans_400Regular_Italic, DMSans_500Medium, DMSans_600SemiBold, DMSans_700Bold } from '@expo-google-fonts/dm-sans';
 import * as SecureStore from 'expo-secure-store';
 
 import { AppProvider, useApp } from './src/AppContext';
+import { COLORS } from './src/colors';
 import { ProfileSetupScreen }      from './src/screens/ProfileSetupScreen';
 import { AppIntroScreen }          from './src/screens/AppIntroScreen';
 import { DashboardScreen }         from './src/screens/DashboardScreen';
@@ -30,9 +20,7 @@ import { TaskSheet }               from './src/components/TaskSheet';
 import { Icon, Avatar }            from './src/components/primitives';
 import { Toast }                   from './src/components/Toast';
 
-// ── Floating tab bar ──────────────────────────────────────────────────────────
 function FloatingTabBar({ active, onChange }) {
-  const { palette } = useApp();
   const insets = useSafeAreaInsets();
   const tabs = [
     { id: 'dashboard', label: 'Home',   icon: 'home' },
@@ -40,24 +28,25 @@ function FloatingTabBar({ active, onChange }) {
     { id: 'inbox',     label: 'Inbox',  icon: 'inbox' },
   ];
   return (
-    <View style={[styles.tabBarOuter, { paddingBottom: insets.bottom + 6 }]} pointerEvents="box-none">
-      <View style={[styles.tabBarPill, { borderColor: palette.line }]}>
+    <View className="absolute left-0 right-0 bottom-0 px-3.5 pt-2" style={{ paddingBottom: insets.bottom + 6 }} pointerEvents="box-none">
+      <View className="flex-row gap-1.5 px-3 py-2.5 rounded-[28px] border-half border-line"
+        style={{ backgroundColor: 'rgba(251,247,242,0.9)', shadowColor: '#000', shadowOpacity: 0.09, shadowRadius: 14, shadowOffset: { width: 0, height: 5 }, elevation: 10 }}>
         {tabs.map(tab => {
           const isFocused = active === tab.id;
           const isCreate  = tab.id === 'create';
           return (
-            <TouchableOpacity key={tab.id} onPress={() => onChange(tab.id)}
-              activeOpacity={0.75} style={styles.tabBtn}>
+            <TouchableOpacity key={tab.id} onPress={() => onChange(tab.id)} activeOpacity={0.75} className="flex-1 items-center gap-0.5 py-1">
               {isCreate ? (
-                <View style={[styles.createCircle, { backgroundColor: palette.ink }]}>
-                  <Icon name="plus" size={20} color={palette.surface} />
+                <View className="w-10 h-10 rounded-full bg-ink items-center justify-center -mt-1"
+                  style={{ shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 5 }}>
+                  <Icon name="plus" size={20} color={COLORS.surface} />
                 </View>
               ) : (
-                <Icon name={tab.icon} size={22} color={isFocused ? palette.ink : palette.muted} />
+                <Icon name={tab.icon} size={22} color={isFocused ? COLORS.ink : COLORS.muted} />
               )}
-              <Text style={[styles.tabLabel, {
-                color: (isFocused && !isCreate) ? palette.ink : palette.muted,
-              }]}>{tab.label}</Text>
+              <Text className="font-sans-md text-2xs" style={{ letterSpacing: 0.2, color: (isFocused && !isCreate) ? COLORS.ink : COLORS.muted }}>
+                {tab.label}
+              </Text>
             </TouchableOpacity>
           );
         })}
@@ -66,17 +55,14 @@ function FloatingTabBar({ active, onChange }) {
   );
 }
 
-// ── Pending join requests (shown inside SettingsSheet for circle owners) ───────
-function PendingRequests({ circleId, palette }) {
+function PendingRequests({ circleId }) {
   const { joinRequests } = useApp();
   const [requests, setRequests] = useState([]);
-  const [busy, setBusy]         = useState(null); // requestId being processed
+  const [busy, setBusy]         = useState(null);
 
   useEffect(() => {
     if (!circleId) return;
-    joinRequests.listPending(circleId)
-      .then(setRequests)
-      .catch(() => {});
+    joinRequests.listPending(circleId).then(setRequests).catch(() => {});
   }, [circleId]);
 
   async function handleAccept(req) {
@@ -84,11 +70,8 @@ function PendingRequests({ circleId, palette }) {
     try {
       await joinRequests.accept(req.id, req.circle_id, req.requester_id);
       setRequests(r => r.filter(x => x.id !== req.id));
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setBusy(null);
-    }
+    } catch (err) { console.error(err); }
+    finally { setBusy(null); }
   }
 
   async function handleReject(req) {
@@ -96,37 +79,28 @@ function PendingRequests({ circleId, palette }) {
     try {
       await joinRequests.reject(req.id);
       setRequests(r => r.filter(x => x.id !== req.id));
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setBusy(null);
-    }
+    } catch (err) { console.error(err); }
+    finally { setBusy(null); }
   }
 
   if (requests.length === 0) return null;
 
   return (
-    <View style={{ marginTop: 4 }}>
-      <Text style={[styles.settingsSectionLabel, { color: palette.muted, marginBottom: 10 }]}>
-        Join Requests
-      </Text>
+    <View className="mt-1">
+      <Text className="font-sans-md text-2xs tracking-kicker-lg uppercase text-muted mb-2.5">Join Requests</Text>
       {requests.map(req => (
-        <View key={req.id} style={[styles.reqRow, { borderColor: palette.lineStrong, backgroundColor: palette.surfaceAlt }]}>
+        <View key={req.id} className="flex-row items-center gap-2.5 rounded-xl border-half border-line-strong bg-surface-alt p-3 mb-2">
           {req.requester && <Avatar member={req.requester} size={28} />}
-          <Text style={[styles.reqName, { color: palette.ink }]}>
-            {req.requester?.name ?? 'Unknown'}
-          </Text>
+          <Text className="flex-1 font-sans-md text-md text-ink">{req.requester?.name ?? 'Unknown'}</Text>
           {busy === req.id ? (
-            <ActivityIndicator size="small" color={palette.muted} />
+            <ActivityIndicator size="small" color={COLORS.muted} />
           ) : (
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              <TouchableOpacity onPress={() => handleAccept(req)}
-                style={[styles.reqBtn, { backgroundColor: palette.ink }]}>
-                <Text style={[styles.reqBtnText, { color: palette.surface }]}>Accept</Text>
+            <View className="flex-row gap-2">
+              <TouchableOpacity onPress={() => handleAccept(req)} className="px-3.5 py-2 rounded-2xl bg-ink">
+                <Text className="font-sans-md text-sm text-surface">Accept</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleReject(req)}
-                style={[styles.reqBtn, { borderWidth: 0.5, borderColor: palette.lineStrong }]}>
-                <Text style={[styles.reqBtnText, { color: palette.muted }]}>Reject</Text>
+              <TouchableOpacity onPress={() => handleReject(req)} className="px-3.5 py-2 rounded-2xl border-half border-line-strong">
+                <Text className="font-sans-md text-sm text-muted">Reject</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -136,94 +110,49 @@ function PendingRequests({ circleId, palette }) {
   );
 }
 
-// ── Preferences sheet ─────────────────────────────────────────────────────────
 function SettingsSheet({ visible, onClose }) {
-  const { palette, paletteKey, setPaletteKey, personaKey, setPersonaKey,
-          isAuthenticated, activeCircle, session } = useApp();
+  const { personaKey, setPersonaKey, isAuthenticated, activeCircle, session } = useApp();
   const insets = useSafeAreaInsets();
-
-  const palettes = [
-    { key: 'warm', label: 'Warm' },
-    { key: 'dusk', label: 'Dusk' },
-    { key: 'mono', label: 'Mono' },
-  ];
   const personas = [
     { key: 'couple', label: 'Couple · Mira & Theo' },
     { key: 'family', label: 'Family · Okafors' },
     { key: 'flat',   label: 'Flat · Cedar St.' },
   ];
-
   const isOwner = activeCircle && session?.user?.id === activeCircle.owner_id;
 
   function shareCircleId() {
     if (!activeCircle) return;
-    Share.share({
-      message: `Join my LoadShare circle!\nCircle ID: ${activeCircle.id}`,
-    });
+    Share.share({ message: `Join my LoadShare circle!\nCircle ID: ${activeCircle.id}` });
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide"
-      onRequestClose={onClose} statusBarTranslucent>
-      <View style={styles.settingsOverlay}>
-        <TouchableOpacity style={StyleSheet.absoluteFillObject} onPress={onClose} activeOpacity={1} />
-        <View style={[styles.settingsSheet, {
-          backgroundColor: palette.surface,
-          paddingBottom: Math.max(insets.bottom + 16, 24),
-        }]}>
-          <View style={[styles.handle, { backgroundColor: palette.lineStrong }]} />
-          <Text style={[styles.settingsTitle, { color: palette.ink }]}>Settings</Text>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
+      <View className="flex-1 justify-end bg-black/30">
+        <TouchableOpacity className="absolute inset-0" onPress={onClose} activeOpacity={1} />
+        <View className="rounded-t-[22px] bg-surface p-5" style={{ paddingBottom: Math.max(insets.bottom + 16, 24) }}>
+          <View className="w-9 h-1 rounded-full bg-line-strong self-center mb-5" />
+          <Text className="font-serif text-3xl text-ink mb-5">Settings</Text>
 
-          {/* Palette */}
-          <Text style={[styles.settingsSectionLabel, { color: palette.muted }]}>Palette</Text>
-          <View style={[styles.settingsRow, { marginBottom: 22 }]}>
-            {palettes.map(p => (
-              <TouchableOpacity key={p.key} onPress={() => setPaletteKey(p.key)}
-                style={[styles.settingsChip, {
-                  backgroundColor: p.key === paletteKey ? palette.ink : 'transparent',
-                  borderColor: p.key === paletteKey ? palette.ink : palette.lineStrong,
-                }]}>
-                <Text style={[styles.settingsChipText, {
-                  color: p.key === paletteKey ? palette.surface : palette.ink,
-                }]}>{p.label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* Demo personas — only when not authenticated */}
           {!isAuthenticated && <>
-            <Text style={[styles.settingsSectionLabel, { color: palette.muted }]}>Demo household</Text>
-            <View style={{ gap: 6, marginBottom: 22 }}>
+            <Text className="font-sans-md text-2xs tracking-kicker-lg uppercase text-muted mb-2.5">Demo household</Text>
+            <View className="gap-1.5 mb-5">
               {personas.map(p => (
                 <TouchableOpacity key={p.key} onPress={() => setPersonaKey(p.key)}
-                  style={[styles.settingsChipWide, {
-                    backgroundColor: p.key === personaKey ? palette.ink : 'transparent',
-                    borderColor: p.key === personaKey ? palette.ink : palette.lineStrong,
-                  }]}>
-                  <Text style={[styles.settingsChipText, {
-                    color: p.key === personaKey ? palette.surface : palette.ink,
-                  }]}>{p.label}</Text>
+                  className={`px-4 py-3 rounded-xl border-half ${p.key === personaKey ? 'bg-ink border-ink' : 'border-line-strong'}`}>
+                  <Text className={`font-sans-md text-md ${p.key === personaKey ? 'text-surface' : 'text-ink'}`}>{p.label}</Text>
                 </TouchableOpacity>
               ))}
             </View>
           </>}
 
-          {/* Circle ID — share with others so they can request to join */}
           {isAuthenticated && activeCircle && <>
-            <Text style={[styles.settingsSectionLabel, { color: palette.muted }]}>Your circle</Text>
-            <TouchableOpacity
-              onPress={shareCircleId}
-              style={[styles.circleIdBox, { backgroundColor: palette.surfaceAlt, borderColor: palette.lineStrong }]}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.circleIdLabel, { color: palette.muted }]}>Circle ID  ·  tap to share</Text>
-              <Text style={[styles.circleIdValue, { color: palette.inkSoft }]} numberOfLines={1}>
-                {activeCircle.id}
-              </Text>
+            <Text className="font-sans-md text-2xs tracking-kicker-lg uppercase text-muted mb-2.5">Your circle</Text>
+            <TouchableOpacity onPress={shareCircleId} activeOpacity={0.7}
+              className="rounded-xl border-half border-line-strong bg-surface-alt p-3.5 mb-4">
+              <Text className="font-sans-md text-2xs text-muted mb-1" style={{ letterSpacing: 0.8 }}>Circle ID  ·  tap to share</Text>
+              <Text className="font-sans text-sm text-ink-soft" numberOfLines={1}>{activeCircle.id}</Text>
             </TouchableOpacity>
-
-            {/* Pending join requests (owners only) */}
-            {isOwner && <PendingRequests circleId={activeCircle.id} palette={palette} />}
+            {isOwner && <PendingRequests circleId={activeCircle.id} />}
           </>}
         </View>
       </View>
@@ -231,42 +160,41 @@ function SettingsSheet({ visible, onClose }) {
   );
 }
 
-// ── App shell ─────────────────────────────────────────────────────────────────
 function AppShell() {
-  const { palette, persona, openTask, setOpenTask, activeTab, setActiveTab, loading } = useApp();
+  const { persona, openTask, setOpenTask, activeTab, setActiveTab, loading } = useApp();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   if (loading || !persona) {
     return (
-      <View style={{ flex: 1, backgroundColor: palette.bg, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator color={palette.muted} />
+      <View className="flex-1 bg-canvas items-center justify-center">
+        <ActivityIndicator color={COLORS.muted} />
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: palette.bg }}>
+    <View className="flex-1 bg-canvas">
       {activeTab === 'dashboard' && <DashboardScreen />}
       {activeTab === 'create'    && <CreateScreen />}
       {activeTab === 'inbox'     && <InboxScreen />}
 
       <FloatingTabBar active={activeTab} onChange={setActiveTab} />
 
-      <TaskSheet task={openTask} persona={persona} palette={palette}
-        onClose={() => setOpenTask(null)} />
+      <TaskSheet task={openTask} persona={persona} onClose={() => setOpenTask(null)} />
       <SettingsSheet visible={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <Toast />
 
       <TouchableOpacity
         onPress={() => setSettingsOpen(true)}
-        style={[styles.settingsFab, { backgroundColor: palette.surface, borderColor: palette.line }]}>
-        <Icon name="dots" size={18} color={palette.muted} />
+        className="absolute right-4 bg-surface border-half border-line rounded-full w-9 h-9 items-center justify-center"
+        style={{ bottom: 110, shadowColor: '#000', shadowOpacity: 0.07, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 3 }}
+      >
+        <Icon name="dots" size={18} color={COLORS.muted} />
       </TouchableOpacity>
     </View>
   );
 }
 
-// ── App Router ────────────────────────────────────────────────────────────────
 function AppRouter() {
   const { isAuthenticated, profile, loading, hasCircle } = useApp();
   const [startupDone, setStartupDone]   = useState(false);
@@ -289,16 +217,11 @@ function AppRouter() {
   if (!introDone)                     return <AppIntroScreen onComplete={handleIntroComplete} />;
   if (!isAuthenticated)               return <AuthScreen />;
   if (!profile)                       return <ProfileSetupScreen />;
-  if (loading)                        return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <ActivityIndicator />
-    </View>
-  );
+  if (loading)                        return <View className="flex-1 items-center justify-center"><ActivityIndicator /></View>;
   if (!hasCircle)                     return <CircleOnboardingScreen />;
   return <AppShell />;
 }
 
-// ── Root ──────────────────────────────────────────────────────────────────────
 export default function Root() {
   const [fontsLoaded] = useFonts({
     InstrumentSerif_400Regular, InstrumentSerif_400Regular_Italic,
@@ -315,54 +238,5 @@ export default function Root() {
   );
 }
 
-const styles = StyleSheet.create({
-  tabBarOuter: {
-    position: 'absolute', left: 0, right: 0, bottom: 0,
-    paddingHorizontal: 14, paddingTop: 8,
-  },
-  tabBarPill: {
-    flexDirection: 'row', gap: 6, paddingHorizontal: 12, paddingVertical: 10,
-    borderRadius: 28, borderWidth: 0.5,
-    backgroundColor: 'rgba(255,253,248,0.9)',
-    shadowColor: '#000', shadowOpacity: 0.09, shadowRadius: 14,
-    shadowOffset: { width: 0, height: 5 }, elevation: 10,
-  },
-  tabBtn: { flex: 1, alignItems: 'center', gap: 3, paddingVertical: 4 },
-  tabLabel: { fontFamily: 'DMSans_500Medium', fontSize: 10, letterSpacing: 0.2 },
-  createCircle: {
-    width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center',
-    marginTop: -4, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 }, elevation: 5,
-  },
-  settingsFab: {
-    position: 'absolute', right: 16, bottom: 110,
-    width: 36, height: 36, borderRadius: 18, borderWidth: 0.5,
-    alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#000', shadowOpacity: 0.07, shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 }, elevation: 3,
-  },
-  settingsOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.3)' },
-  settingsSheet: { borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: 20 },
-  handle: { width: 36, height: 4, borderRadius: 2, alignSelf: 'center', marginBottom: 20 },
-  settingsTitle: { fontFamily: 'InstrumentSerif_400Regular', fontSize: 26, marginBottom: 22 },
-  settingsSectionLabel: {
-    fontFamily: 'DMSans_500Medium', fontSize: 11,
-    letterSpacing: 1.4, textTransform: 'uppercase', marginBottom: 10,
-  },
-  settingsRow: { flexDirection: 'row', gap: 8 },
-  settingsChip: { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 20, borderWidth: 0.5 },
-  settingsChipWide: { paddingHorizontal: 16, paddingVertical: 12, borderRadius: 14, borderWidth: 0.5 },
-  settingsChipText: { fontFamily: 'DMSans_500Medium', fontSize: 14 },
-  circleIdBox: {
-    borderRadius: 12, borderWidth: 0.5, padding: 14, marginBottom: 16,
-  },
-  circleIdLabel: { fontFamily: 'DMSans_500Medium', fontSize: 10, letterSpacing: 0.8, marginBottom: 4 },
-  circleIdValue: { fontFamily: 'DMSans_400Regular', fontSize: 12 },
-  reqRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    borderRadius: 12, borderWidth: 0.5, padding: 12, marginBottom: 8,
-  },
-  reqName: { flex: 1, fontFamily: 'DMSans_500Medium', fontSize: 14 },
-  reqBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16 },
-  reqBtnText: { fontFamily: 'DMSans_500Medium', fontSize: 12 },
-});
+// Keep only non-migratable styles (legacy animated Animated.View in TabBar needs StyleSheet)
+const styles = StyleSheet.create({});

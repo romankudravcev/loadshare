@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { PALETTES, PERSONAS } from './tokens';
+import { PERSONAS } from './tokens';
 import { api as mockApi } from './services/mockApi';
 import { circles as circlesApi } from './services/circles';
 import { tasks as tasksApi, circleToPersona } from './services/tasks';
@@ -10,7 +10,6 @@ import { getSession, onAuthStateChange, signOut as authSignOut } from './service
 export const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
-  const [paletteKey, setPaletteKey]   = useState('warm');
   const [personaKey, setPersonaKey]   = useState('flat');
   const [persona, setPersona]         = useState(null);
   const [loading, setLoading]         = useState(true);
@@ -27,9 +26,6 @@ export function AppProvider({ children }) {
   const [circleList, setCircleList]     = useState([]);
   const [hasCircle, setHasCircle]       = useState(false);
 
-  const palette = PALETTES[paletteKey];
-
-  // ── Auth bootstrap ──────────────────────────────────────────────────────────
   useEffect(() => {
     getSession().then(s => {
       setSession(s);
@@ -43,7 +39,6 @@ export function AppProvider({ children }) {
     });
   }, []);
 
-  // ── Data loading ────────────────────────────────────────────────────────────
   useEffect(() => {
     const load = async () => {
       setLoading(true);
@@ -108,14 +103,12 @@ export function AppProvider({ children }) {
     await authSignOut();
   };
 
-  // The currently logged-in member within the active persona/circle
   const currentMember = isAuthenticated && persona && session
     ? (persona.members.find(m => m.id === session.user.id) ?? persona.members[0])
     : persona?.members?.[0] ?? null;
 
   return (
     <AppContext.Provider value={{
-      palette, paletteKey, setPaletteKey,
       persona, personaKey, setPersonaKey,
       openTask, setOpenTask,
       session, isAuthenticated, profile,

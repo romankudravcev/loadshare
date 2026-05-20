@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, LayoutAnimation, Platform, UIManager } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from '../AppContext';
 import { ROLES, weightOf } from '../tokens';
+import { COLORS } from '../colors';
 import { Avatar, RoleGlyph, Kicker, Display, WeightBars, Dot, Icon } from '../components/primitives';
+import { FadeInView } from '../components/FadeInView';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-import { FadeInView } from '../components/FadeInView';
-
 const TAB_BAR_EXTRA = 100;
-
 const FILTERS = [
   { id: 'all',    label: 'All open' },
   { id: 'mine',   label: "I'm holding" },
@@ -22,7 +21,7 @@ const FILTERS = [
 
 export function InboxScreen() {
   const insets = useSafeAreaInsets();
-  const { palette, persona, setOpenTask } = useApp();
+  const { persona, setOpenTask } = useApp();
   const [filter, setFilter] = useState('all');
 
   const handleFilter = (id) => {
@@ -32,224 +31,134 @@ export function InboxScreen() {
 
   const me = persona.members[0];
   const byId = Object.fromEntries(persona.members.map(m => [m.id, m]));
-
   let tasks = persona.tasks.filter(t => t.status !== 'done');
   if (filter === 'mine')   tasks = tasks.filter(t => t.reminder === me.id);
   if (filter === 'others') tasks = tasks.filter(t => t.reminder !== me.id);
-  if (filter === 'soon')   tasks = tasks.filter(t =>
-    ['Mon', 'Tue', 'Wed', 'Today', 'Tomorrow', 'daily'].includes(t.when)
-  );
+  if (filter === 'soon')   tasks = tasks.filter(t => ['Mon', 'Tue', 'Wed', 'Today', 'Tomorrow', 'daily'].includes(t.when));
 
-  // Group by holder (reminder role)
   const groups = {};
   tasks.forEach(t => { (groups[t.reminder] = groups[t.reminder] || []).push(t); });
   const holders = Object.keys(groups).map(id => ({ m: byId[id], tasks: groups[id] }));
 
   return (
-    <FadeInView style={{ flex: 1, backgroundColor: palette.bg }}>
+    <FadeInView style={{ flex: 1, backgroundColor: COLORS.canvas }}>
       <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{
-          paddingTop: insets.top + 12,
-          paddingHorizontal: 20,
-          paddingBottom: TAB_BAR_EXTRA,
-        }}
+        className="flex-1"
+        contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: TAB_BAR_EXTRA }}
         showsVerticalScrollIndicator={false}
       >
-      {/* Header */}
-      <View style={{ marginBottom: 16 }}>
-        <Kicker color={palette.muted}>Inbox</Kicker>
-        <Display size={32} style={{ color: palette.ink, marginTop: 2 }}>
-          Things being held.
-        </Display>
-        <Text style={[styles.subtitle, { color: palette.muted }]}>
-          Each item is mental weight someone is carrying. Picking one up is a small way to share the load.
-        </Text>
-      </View>
-
-      {/* Filter chips */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 18 }}>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          {FILTERS.map(f => (
-            <FilterChip key={f.id} palette={palette} active={filter === f.id}
-              onPress={() => handleFilter(f.id)} label={f.label} />
-          ))}
-        </View>
-      </ScrollView>
-
-      {/* Grouped tasks */}
-      {holders.map(({ m, tasks: groupTasks }) => (
-        <View key={m.id} style={{ marginBottom: 22 }}>
-          {/* Group header */}
-          <View style={styles.groupHeader}>
-            <Avatar member={m} size={22} />
-            <Text style={[styles.groupLabel, { color: palette.ink }]}>
-              {m.id === me.id ? 'You' : m.name} · {groupTasks.length} {groupTasks.length === 1 ? 'item' : 'items'}
-            </Text>
-            <View style={[styles.groupLine, { backgroundColor: palette.line }]} />
-          </View>
-          {/* Task rows */}
-          <View style={{ gap: 6 }}>
-            {groupTasks.map(t => (
-              <InboxRow key={t.id} task={t} persona={persona} palette={palette}
-                me={me} byId={byId}
-                onPress={() => setOpenTask(t)} />
-            ))}
-          </View>
-        </View>
-      ))}
-
-      {/* Empty state */}
-      {tasks.length === 0 && (
-        <View style={styles.emptyState}>
-          <Icon name="check" size={32} color={palette.executor} />
-          <Text style={[styles.emptyText, { color: palette.muted }]}>
-            Nothing waiting. Quiet moment.
+        <View className="mb-4">
+          <Kicker color={COLORS.muted}>Inbox</Kicker>
+          <Display size={32} style={{ color: COLORS.ink, marginTop: 2 }}>Things being held.</Display>
+          <Text className="font-sans text-base text-muted leading-[19px] mt-1.5">
+            Each item is mental weight someone is carrying. Picking one up is a small way to share the load.
           </Text>
         </View>
-      )}
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
+          <View className="flex-row gap-2">
+            {FILTERS.map(f => (
+              <TouchableOpacity key={f.id} onPress={() => handleFilter(f.id)} activeOpacity={0.7}
+                className={`px-3.5 py-2 rounded-full ${filter === f.id ? 'bg-ink' : 'bg-surface border-half border-line'}`}>
+                <Text className={`font-sans-md text-base ${filter === f.id ? 'text-surface' : 'text-ink'}`}>{f.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
+
+        {holders.map(({ m, tasks: groupTasks }) => (
+          <View key={m.id} className="mb-5">
+            <View className="flex-row items-center gap-2.5 mb-2.5 px-0.5">
+              <Avatar member={m} size={22} />
+              <Text className="font-sans-bold text-sm text-ink" style={{ letterSpacing: 0.2 }}>
+                {m.id === me.id ? 'You' : m.name} · {groupTasks.length} {groupTasks.length === 1 ? 'item' : 'items'}
+              </Text>
+              <View className="flex-1 h-[0.5px] ml-1.5" style={{ backgroundColor: COLORS.line }} />
+            </View>
+            <View className="gap-1.5">
+              {groupTasks.map(t => (
+                <InboxRow key={t.id} task={t} persona={persona} me={me} byId={byId} onPress={() => setOpenTask(t)} />
+              ))}
+            </View>
+          </View>
+        ))}
+
+        {tasks.length === 0 && (
+          <View className="py-[60px] items-center">
+            <Icon name="check" size={32} color={COLORS.executor} />
+            <Text className="font-sans text-md text-muted mt-2.5">Nothing waiting. Quiet moment.</Text>
+          </View>
+        )}
       </ScrollView>
     </FadeInView>
   );
 }
 
-function InboxRow({ task, persona, palette, me, byId, onPress }) {
+function InboxRow({ task, persona, me, byId, onPress }) {
   const [picked, setPicked] = useState(false);
-  const [reminded, setReminded] = useState(false);
-  const [nudged, setNudged] = useState(false);
-  
+  const { showToast } = useApp();
   const doer = byId[task.executor];
   const holder = byId[task.reminder];
   const isMine = holder?.id === me.id;
-  const { showToast } = useApp();
-
-  const handleRemind = () => {
-    showToast(`Reminded ${holder?.name} about ${task.title}`);
-  };
-
-  const handleNudge = () => {
-    showToast(`Nudged ${doer?.name} about ${task.title}`);
-  };
-
-  const handlePickUp = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setPicked(p => !p);
-  };
 
   return (
-    <View style={[styles.inboxCard, {
-      backgroundColor: palette.surface,
-      borderColor: palette.line,
-    }]}>
-      <TouchableOpacity onPress={onPress} activeOpacity={0.7}
-        style={styles.inboxCardContent}>
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.inboxTitle, { color: palette.ink }]}>{task.title}</Text>
-          {/* Inline roles */}
-          <View style={styles.inlineRoles}>
-            {ROLES.map(r => {
-              const m = byId[task[r.key]];
-              return (
-                <View key={r.key} style={styles.inlineRole}>
-                  <RoleGlyph role={r.key} color={palette[r.key]} size={10} />
-                  <Text style={[styles.roleShort, { color: palette.muted }]}>{m?.short}</Text>
-                </View>
-              );
-            })}
-          </View>
-          {/* Meta */}
-          <View style={styles.inboxMeta}>
-            <Text style={[styles.metaText, { color: palette.muted }]}>{task.when}</Text>
-            <Dot color={palette.muted} />
-            <Text style={[styles.metaText, { color: palette.muted }]}>{task.category}</Text>
-            <Dot color={palette.muted} />
-            <WeightBars value={task.weight} color={palette.inkSoft} muted={palette.inkSoft} size="xs" />
-            <Text style={[styles.weightLabel, { color: palette.inkSoft }]}>
-              {weightOf(task.weight).label}
-            </Text>
-          </View>
+    <View className="rounded-xl border-half border-line bg-surface overflow-hidden">
+      <TouchableOpacity onPress={onPress} activeOpacity={0.7} className="p-3.5">
+        <Text className="font-sans-md text-md text-ink leading-[19px] mb-1.5">{task.title}</Text>
+        <View className="flex-row gap-2.5 items-center mb-2">
+          {ROLES.map(r => {
+            const m = byId[task[r.key]];
+            return (
+              <View key={r.key} className="flex-row items-center gap-0.5">
+                <RoleGlyph role={r.key} color={COLORS[r.key]} size={10} />
+                <Text className="font-sans-md text-2xs text-muted">{m?.short}</Text>
+              </View>
+            );
+          })}
+        </View>
+        <View className="flex-row items-center gap-2">
+          <Text className="font-sans text-xs text-muted">{task.when}</Text>
+          <Dot color={COLORS.muted} />
+          <Text className="font-sans text-xs text-muted">{task.category}</Text>
+          <Dot color={COLORS.muted} />
+          <WeightBars value={task.weight} color={COLORS.inkSoft} muted={COLORS.inkSoft} size="xs" />
+          <Text className="font-sans-md text-xs text-ink-soft">{weightOf(task.weight).label}</Text>
         </View>
       </TouchableOpacity>
 
-      {/* Action strip */}
       {!isMine ? (
-        <View style={[styles.actionStrip, { borderColor: palette.line }]}>
-          <TouchableOpacity onPress={() => {
-            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-            setPicked(p => !p);
-            showToast(!picked ? `Picked up from ${holder?.name}` : `Put back`);
-          }}
-            style={[styles.actionBtn, { flex: 1 }]}
-            activeOpacity={0.7}>
-            <Icon name={picked ? 'check' : 'handoff'} size={14}
-              color={picked ? palette.executor : palette.ink} />
-            <Text style={[styles.actionText, { color: picked ? palette.executor : palette.ink }]}>
+        <View className="flex-row items-stretch border-t-half border-line">
+          <TouchableOpacity
+            className="flex-1 flex-row items-center gap-2 p-3"
+            onPress={() => {
+              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+              setPicked(p => !p);
+              showToast(!picked ? `Picked up from ${holder?.name}` : 'Put back');
+            }}
+            activeOpacity={0.7}
+          >
+            <Icon name={picked ? 'check' : 'handoff'} size={14} color={picked ? COLORS.executor : COLORS.ink} />
+            <Text className="font-sans-md text-sm" style={{ color: picked ? COLORS.executor : COLORS.ink }}>
               {picked ? `Picked up · ${holder?.name} notified` : `Pick up from ${holder?.name}`}
             </Text>
           </TouchableOpacity>
-          {!picked && (
-            <>
-              <View style={[styles.actionDivider, { backgroundColor: palette.line }]} />
-              <TouchableOpacity style={styles.actionBtn} activeOpacity={0.7} onPress={handleRemind}>
-                <Icon name="bell" size={14} color={palette.muted} />
-                <Text style={[styles.actionText, { color: palette.muted }]}>Remind</Text>
-              </TouchableOpacity>
-            </>
-          )}
+          {!picked && <>
+            <View className="w-[0.5px]" style={{ backgroundColor: COLORS.line }} />
+            <TouchableOpacity className="flex-row items-center gap-2 p-3" activeOpacity={0.7}
+              onPress={() => showToast(`Reminded ${holder?.name} about ${task.title}`)}>
+              <Icon name="bell" size={14} color={COLORS.muted} />
+              <Text className="font-sans-md text-sm text-muted">Remind</Text>
+            </TouchableOpacity>
+          </>}
         </View>
       ) : (
-        <View style={[styles.waitingStrip, { borderColor: palette.line, backgroundColor: palette.surfaceAlt }]}>
-          <Text style={[styles.waitingText, { color: palette.muted }]}>
-            Waiting on {doer?.name} to finish
-          </Text>
-          <TouchableOpacity onPress={handleNudge}>
-            <Text style={[styles.nudgeText, { color: palette.accent }]}>Nudge</Text>
+        <View className="border-t-half border-line bg-surface-alt px-3.5 py-2.5 flex-row justify-between items-center">
+          <Text className="font-sans text-xs text-muted">Waiting on {doer?.name} to finish</Text>
+          <TouchableOpacity onPress={() => showToast(`Nudged ${doer?.name} about ${task.title}`)}>
+            <Text className="font-sans-md text-xs text-accent">Nudge</Text>
           </TouchableOpacity>
         </View>
       )}
     </View>
   );
 }
-
-function FilterChip({ palette, active, onPress, label }) {
-  return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7}
-      style={[styles.chip, {
-        backgroundColor: active ? palette.ink : palette.surface,
-        borderColor: palette.line,
-        borderWidth: active ? 0 : 0.5,
-      }]}>
-      <Text style={[styles.chipText, { color: active ? palette.surface : palette.ink }]}>{label}</Text>
-    </TouchableOpacity>
-  );
-}
-
-const styles = StyleSheet.create({
-  subtitle: { fontFamily: 'DMSans_400Regular', fontSize: 13, lineHeight: 19, marginTop: 6 },
-  groupHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10, paddingHorizontal: 2 },
-  groupLabel: { fontFamily: 'DMSans_600SemiBold', fontSize: 12, letterSpacing: 0.2 },
-  groupLine: { flex: 1, height: 0.5, marginLeft: 6 },
-  inboxCard: { borderRadius: 14, borderWidth: 0.5, overflow: 'hidden' },
-  inboxCardContent: { padding: 14 },
-  inboxTitle: { fontFamily: 'DMSans_500Medium', fontSize: 14, lineHeight: 19, marginBottom: 6 },
-  inlineRoles: { flexDirection: 'row', gap: 10, alignItems: 'center', marginBottom: 8 },
-  inlineRole: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  roleShort: { fontFamily: 'DMSans_500Medium', fontSize: 10 },
-  inboxMeta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  metaText: { fontFamily: 'DMSans_400Regular', fontSize: 11 },
-  weightLabel: { fontFamily: 'DMSans_500Medium', fontSize: 11 },
-  actionStrip: { borderTopWidth: 0.5, flexDirection: 'row', alignItems: 'stretch' },
-  actionBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12 },
-  actionText: { fontFamily: 'DMSans_500Medium', fontSize: 12 },
-  actionDivider: { width: 0.5 },
-  waitingStrip: {
-    borderTopWidth: 0.5, paddingHorizontal: 14, paddingVertical: 10,
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-  },
-  waitingText: { fontFamily: 'DMSans_400Regular', fontSize: 11 },
-  nudgeText: { fontFamily: 'DMSans_500Medium', fontSize: 11 },
-  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 },
-  chipText: { fontFamily: 'DMSans_500Medium', fontSize: 13 },
-  emptyState: { paddingVertical: 60, alignItems: 'center' },
-  emptyText: { fontFamily: 'DMSans_400Regular', fontSize: 14, marginTop: 10 },
-});
