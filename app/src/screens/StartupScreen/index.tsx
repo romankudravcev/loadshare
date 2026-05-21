@@ -118,12 +118,14 @@ export function StartupScreen({ onComplete }: Props) {
       {/* Logo layer */}
       <Animated.View className="absolute inset-0 items-center justify-center" style={logoLayerStyle} pointerEvents="none">
         <LSMark inkColor={COLORS.ink} roleColors={ROLE_COLORS} arcValues={arcValues} pipValue={pipValue} />
-        <Animated.Text className="font-serif text-6xl text-ink" style={[{ marginTop: 20, letterSpacing: -0.4 }, wordStyle]}>
-          Load<Text style={{ fontFamily: 'InstrumentSerif_400Regular_Italic' }}>Share</Text>
-        </Animated.Text>
-        <Animated.Text className="font-sans-md text-xs tracking-tagline uppercase text-muted" style={[{ marginTop: 12 }, tagStyle]}>
-          Share the load
-        </Animated.Text>
+        <View style={{ position: 'absolute', bottom: 60, alignItems: 'center' }}>
+          <Animated.Text className="font-serif text-6xl text-ink" style={[{ letterSpacing: -0.4 }, wordStyle]}>
+            Load<Text style={{ fontFamily: 'InstrumentSerif_400Regular_Italic' }}>Share</Text>
+          </Animated.Text>
+          <Animated.Text className="font-sans-md text-xs tracking-tagline uppercase text-muted" style={[{ marginTop: 12 }, tagStyle]}>
+            Share the load
+          </Animated.Text>
+        </View>
       </Animated.View>
 
       {/* Ticker layer */}
@@ -140,12 +142,13 @@ export function StartupScreen({ onComplete }: Props) {
           </Animated.Text>
         </View>
 
-        <Text className="font-serif text-4xl text-ink" style={{ letterSpacing: -0.3, opacity: 0.35, marginTop: 24 }}>
-          Load<Text style={{ fontFamily: 'InstrumentSerif_400Regular_Italic' }}>Share</Text>
-        </Text>
-
-        <View className="w-[100px] h-[1.5px] rounded-sm overflow-hidden mt-2.5 bg-line">
-          <Animated.View className="h-full rounded-sm bg-ink" style={{ width: loading ? '60%' : '100%' }} />
+        <View style={{ position: 'absolute', bottom: 60, alignItems: 'center' }}>
+          <Text className="font-serif text-4xl text-ink" style={{ letterSpacing: -0.3, opacity: 0.35 }}>
+            Load<Text style={{ fontFamily: 'InstrumentSerif_400Regular_Italic' }}>Share</Text>
+          </Text>
+          <View className="w-[100px] h-[1.5px] rounded-sm overflow-hidden mt-2.5 bg-line">
+            <Animated.View className="h-full rounded-sm bg-ink" style={{ width: loading ? '60%' : '100%' }} />
+          </View>
         </View>
       </Animated.View>
     </Animated.View>
