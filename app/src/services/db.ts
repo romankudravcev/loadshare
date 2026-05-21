@@ -2,15 +2,15 @@ import 'react-native-url-polyfill/auto';
 import * as SecureStore from 'expo-secure-store';
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL      = process.env.EXPO_PUBLIC_SUPABASE_URL      || 'https://placeholder.supabase.co';
-const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'placeholder_anon_key';
+const SUPABASE_URL      = process.env.EXPO_PUBLIC_SUPABASE_URL      ?? 'https://placeholder.supabase.co';
+const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? 'placeholder_anon_key';
 
 // Supabase session tokens exceed SecureStore's 2048-byte per-key limit,
 // so we split them into chunks.
 const CHUNK = 1900;
 
 const ChunkedSecureStore = {
-  async getItem(key) {
+  async getItem(key: string): Promise<string | null> {
     const n = await SecureStore.getItemAsync(`${key}.n`);
     if (!n) return null;
     let value = '';
@@ -21,13 +21,13 @@ const ChunkedSecureStore = {
     }
     return value;
   },
-  async setItem(key, value) {
-    const chunks = [];
+  async setItem(key: string, value: string): Promise<void> {
+    const chunks: string[] = [];
     for (let i = 0; i < value.length; i += CHUNK) chunks.push(value.slice(i, i + CHUNK));
     await SecureStore.setItemAsync(`${key}.n`, String(chunks.length));
     await Promise.all(chunks.map((c, i) => SecureStore.setItemAsync(`${key}.${i}`, c)));
   },
-  async removeItem(key) {
+  async removeItem(key: string): Promise<void> {
     const n = await SecureStore.getItemAsync(`${key}.n`);
     if (!n) return;
     await Promise.all([

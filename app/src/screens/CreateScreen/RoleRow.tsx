@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { Avatar, RoleGlyph } from '../../components/primitives';
+import { Avatar } from '../../components/Avatar';
+import { RoleGlyph } from '../../components/RoleGlyph';
 import { COLORS } from '../../colors';
 import type { Member } from './constants';
 
@@ -32,7 +33,7 @@ export function RoleRow({ role, members, value, onChange }: Props) {
             activeOpacity={0.7}
             style={{ borderRadius: 14, padding: 2, borderWidth: 2, borderColor: m.id === value ? roleColor : 'transparent', opacity: m.id === value ? 1 : 0.5 }}
           >
-            <Avatar member={m} size={22} style={undefined} />
+            <Avatar member={m} size="m" style={undefined} />
           </TouchableOpacity>
         ))}
       </View>

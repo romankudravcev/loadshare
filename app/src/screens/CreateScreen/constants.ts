@@ -1,25 +1,10 @@
-import { ROLES } from '../../tokens';
+import { ROLES } from '../../constants/roles';
+import type { RoleKey, RoleAssign, WhenValue, CategoryValue, Member, Persona } from '../../types';
+export type { RoleKey, RoleAssign, WhenValue, CategoryValue, Member, Persona };
 
-export const H_PAD = 20; // px-5 in Tailwind
-export const GAP   = 8;  // gap-2 in Tailwind
+export const H_PAD = 20;
+export const GAP   = 8;
 export const TOTAL_STEPS = 3;
-
-export type RoleKey = 'planner' | 'organizer' | 'reminder' | 'executor';
-export type RoleAssign = Record<RoleKey, string>;
-export type WhenValue = 'Today' | 'Tomorrow' | 'This week' | 'Next week';
-export type CategoryValue = 'Home' | 'Food' | 'Kids' | 'Admin' | 'Family' | 'Errands';
-
-export type Member = {
-  id: string;
-  name: string;
-  short: string;
-  hue: number;
-};
-
-export type Persona = {
-  members: Member[];
-  tasks: any[];
-};
 
 export const CATEGORIES: CategoryValue[] = ['Home', 'Food', 'Kids', 'Admin', 'Family', 'Errands'];
 

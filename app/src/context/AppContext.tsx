@@ -1,29 +1,57 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { PERSONAS } from './tokens';
-import { api as mockApi } from './services/mockApi';
-import { circles as circlesApi } from './services/circles';
-import { tasks as tasksApi, circleToPersona } from './services/tasks';
-import { profiles as profilesApi } from './services/profiles';
-import { joinRequests as joinReqApi } from './services/joinRequests';
-import { getSession, onAuthStateChange, signOut as authSignOut } from './services/auth';
+import type { Session, User } from '@supabase/supabase-js';
+import type { Persona, Circle, Member, Task } from '../types';
+import { PERSONAS } from '../constants/personas';
+import { api as mockApi } from '../services/mockApi';
+import { circles as circlesApi } from '../services/circles';
+import { tasks as tasksApi, circleToPersona } from '../services/tasks';
+import { profiles as profilesApi } from '../services/profiles';
+import { joinRequests as joinReqApi } from '../services/joinRequests';
+import { getSession, onAuthStateChange, signOut as authSignOut } from '../services/auth';
 
-export const AppContext = createContext(null);
+interface AppContextValue {
+  persona:         Persona | null;
+  personaKey:      string;
+  setPersonaKey:   (key: string) => void;
+  openTask:        Task | null;
+  setOpenTask:     (task: Task | null) => void;
+  session:         Session | null;
+  isAuthenticated: boolean;
+  profile:         User | null;
+  signOut:         () => Promise<void>;
+  activeTab:       string;
+  setActiveTab:    (tab: string) => void;
+  loading:         boolean;
+  refreshPersona:  () => Promise<void>;
+  activeCircle:    Circle | null;
+  circleList:      Circle[];
+  hasCircle:       boolean;
+  currentMember:   Member | null;
+  circles:         typeof circlesApi;
+  tasks:           typeof tasksApi;
+  profiles:        typeof profilesApi;
+  joinRequests:    typeof joinReqApi;
+  toastMessage:    string | null;
+  showToast:       (message: string) => void;
+}
 
-export function AppProvider({ children }) {
-  const [personaKey, setPersonaKey]   = useState('flat');
-  const [persona, setPersona]         = useState(null);
-  const [loading, setLoading]         = useState(true);
+const AppContext = createContext<AppContextValue | null>(null);
 
-  const [openTask, setOpenTask]       = useState(null);
-  const [activeTab, setActiveTab]     = useState('dashboard');
-  const [toastMessage, setToastMessage] = useState(null);
+export function AppProvider({ children }: { children: React.ReactNode }) {
+  const [personaKey, setPersonaKey] = useState('flat');
+  const [persona, setPersona]       = useState<Persona | null>(null);
+  const [loading, setLoading]       = useState(true);
 
-  const [session, setSession]         = useState(null);
+  const [openTask, setOpenTask]   = useState<Task | null>(null);
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const [session, setSession]               = useState<Session | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [profile, setProfile]         = useState(null);
+  const [profile, setProfile]               = useState<User | null>(null);
 
-  const [activeCircle, setActiveCircle] = useState(null);
-  const [circleList, setCircleList]     = useState([]);
+  const [activeCircle, setActiveCircle] = useState<Circle | null>(null);
+  const [circleList, setCircleList]     = useState<Circle[]>([]);
   const [hasCircle, setHasCircle]       = useState(false);
 
   useEffect(() => {
@@ -94,18 +122,16 @@ export function AppProvider({ children }) {
     }
   };
 
-  const showToast = (message) => {
+  const showToast = (message: string) => {
     setToastMessage(message);
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const signOut = async () => {
-    await authSignOut();
-  };
+  const signOut = async () => { await authSignOut(); };
 
-  const currentMember = isAuthenticated && persona && session
+  const currentMember: Member | null = isAuthenticated && persona && session
     ? (persona.members.find(m => m.id === session.user.id) ?? persona.members[0])
-    : persona?.members?.[0] ?? null;
+    : (persona?.members?.[0] ?? null);
 
   return (
     <AppContext.Provider value={{
@@ -128,6 +154,8 @@ export function AppProvider({ children }) {
   );
 }
 
-export function useApp() {
-  return useContext(AppContext);
+export function useApp(): AppContextValue {
+  const ctx = useContext(AppContext);
+  if (!ctx) throw new Error('useApp must be used within AppProvider');
+  return ctx;
 }

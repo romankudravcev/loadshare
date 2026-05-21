@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useApp } from '../AppContext';
-import { Icon } from '../components/primitives';
+import { useApp } from '../context/AppContext';
+import { Feather } from '@expo/vector-icons';
 import { COLORS } from '../colors';
 
 const AVATARS = ['🐶', '🐱', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐸', '🐙'];
@@ -10,14 +10,19 @@ const ACCENT_COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FDCB6E', '#6C5CE7', '#
 
 export function ProfileSetupScreen() {
   const insets = useSafeAreaInsets();
-  const { setProfile } = useApp();
+  const { profiles, refreshPersona } = useApp();
   const [name, setName]     = useState('');
   const [avatar, setAvatar] = useState(AVATARS[0]);
   const [color, setColor]   = useState(ACCENT_COLORS[0]);
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (!name.trim()) return;
-    setProfile({ name: name.trim(), avatar, color });
+    try {
+      await profiles.updateMe({ name: name.trim() });
+      await refreshPersona();
+    } catch (err) {
+      console.error('Profile setup error:', err);
+    }
   };
 
   return (
@@ -61,10 +66,13 @@ export function ProfileSetupScreen() {
               <TouchableOpacity
                 key={c}
                 className="w-9 h-9 rounded-full items-center justify-center"
-                style={[{ backgroundColor: c }, color === c && { borderWidth: 2, borderColor: '#fff', shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 3 }]}
+                style={[
+                  { backgroundColor: c },
+                  color === c ? { borderWidth: 2, borderColor: '#fff', shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 3 } : {},
+                ]}
                 onPress={() => setColor(c)}
               >
-                {color === c && <Icon name="check" size={16} color="#fff" />}
+                {color === c && <Feather name="check" size={16} color="#fff" />}
               </TouchableOpacity>
             ))}
           </View>

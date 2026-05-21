@@ -4,7 +4,19 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../colors';
 import { signIn, signUp, resetPassword, signInWithGoogle } from '../services/auth';
 
-function AuthInput({ label, value, onChangeText, secureTextEntry, autoCapitalize, keyboardType }) {
+type AuthMode = 'signin' | 'signup' | 'reset';
+type LoadingKey = 'email' | 'google' | null;
+
+interface AuthInputProps {
+  label: string;
+  value: string;
+  onChangeText: (v: string) => void;
+  secureTextEntry?: boolean;
+  autoCapitalize?: 'none' | 'words' | 'sentences' | 'characters';
+  keyboardType?: 'default' | 'email-address';
+}
+
+function AuthInput({ label, value, onChangeText, secureTextEntry, autoCapitalize, keyboardType }: AuthInputProps) {
   return (
     <View className="mb-3.5">
       <Text className="font-sans-md text-2xs tracking-kicker uppercase text-muted mb-1.5">{label}</Text>
@@ -22,7 +34,7 @@ function AuthInput({ label, value, onChangeText, secureTextEntry, autoCapitalize
   );
 }
 
-function PrimaryButton({ label, onPress, loading }) {
+function PrimaryButton({ label, onPress, loading }: { label: string; onPress: () => void; loading?: boolean }) {
   return (
     <TouchableOpacity activeOpacity={0.8} className="h-[52px] rounded-[26px] bg-ink items-center justify-center mt-2" onPress={onPress} disabled={loading}>
       {loading
@@ -33,7 +45,7 @@ function PrimaryButton({ label, onPress, loading }) {
   );
 }
 
-function OutlinedButton({ label, onPress, loading, disabled }) {
+function OutlinedButton({ label, onPress, loading, disabled }: { label: string; onPress: () => void; loading?: boolean; disabled?: boolean }) {
   return (
     <TouchableOpacity activeOpacity={0.75} className="h-[52px] rounded-[26px] border-half border-line-strong items-center justify-center mt-2" onPress={onPress} disabled={loading || disabled}>
       {loading
@@ -44,7 +56,7 @@ function OutlinedButton({ label, onPress, loading, disabled }) {
   );
 }
 
-function TextButton({ label, onPress }) {
+function TextButton({ label, onPress }: { label: string; onPress: () => void }) {
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7} className="py-2.5 items-center">
       <Text className="font-sans text-xl text-muted">{label}</Text>
@@ -54,17 +66,17 @@ function TextButton({ label, onPress }) {
 
 export function AuthScreen() {
   const insets = useSafeAreaInsets();
-  const [mode, setMode]       = useState('signin');
+  const [mode, setMode]       = useState<AuthMode>('signin');
   const [name, setName]       = useState('');
   const [email, setEmail]     = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(null);
+  const [loading, setLoading] = useState<LoadingKey>(null);
 
   async function handleSignIn() {
     if (!email || !password) return Alert.alert('Fill in all fields');
     setLoading('email');
     try { await signIn({ email, password }); }
-    catch (err) { Alert.alert('Sign in failed', err.message); }
+    catch (err: unknown) { Alert.alert('Sign in failed', (err as Error).message); }
     finally { setLoading(null); }
   }
 
@@ -75,7 +87,7 @@ export function AuthScreen() {
     try {
       await signUp({ email, password, name });
       Alert.alert('Check your email', 'We sent a confirmation link. Click it to activate your account, then sign in.', [{ text: 'OK', onPress: () => setMode('signin') }]);
-    } catch (err) { Alert.alert('Sign up failed', err.message); }
+    } catch (err: unknown) { Alert.alert('Sign up failed', (err as Error).message); }
     finally { setLoading(null); }
   }
 
@@ -85,14 +97,14 @@ export function AuthScreen() {
     try {
       await resetPassword(email);
       Alert.alert('Email sent', 'Check your inbox for a password reset link.', [{ text: 'OK', onPress: () => setMode('signin') }]);
-    } catch (err) { Alert.alert('Failed', err.message); }
+    } catch (err: unknown) { Alert.alert('Failed', (err as Error).message); }
     finally { setLoading(null); }
   }
 
   async function handleGoogle() {
     setLoading('google');
     try { await signInWithGoogle(); }
-    catch (err) { Alert.alert('Google sign in failed', err.message); }
+    catch (err: unknown) { Alert.alert('Google sign in failed', (err as Error).message); }
     finally { setLoading(null); }
   }
 

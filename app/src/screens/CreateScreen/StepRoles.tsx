@@ -1,7 +1,10 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { Kicker, WeightBars, RoleGlyph, Icon } from '../../components/primitives';
-import { memberArc } from '../../tokens';
+import { Kicker } from '../../components/Kicker';
+import { WeightBars } from '../../components/WeightBars';
+import { RoleGlyph } from '../../components/RoleGlyph';
+import { Feather } from '@expo/vector-icons';
+import { memberArc } from '../../utils/load';
 import { COLORS } from '../../colors';
 import { H_PAD, ROLES, type RoleAssign, type Member } from './constants';
 import { RoleRow } from './RoleRow';
@@ -39,7 +42,7 @@ export function StepRoles({ assign, onChangeAssign, members, weight, rolesOnMe, 
       {rolesOnMe >= 3 && autoBalance && (
         <View className="border-half rounded-xl p-3.5 flex-row gap-2.5 mb-4" style={{ backgroundColor: COLORS.nudge + '26', borderColor: COLORS.nudge + '55' }}>
           <View className="w-7 h-7 rounded-full items-center justify-center flex-shrink-0" style={{ backgroundColor: COLORS.nudge + '55' }}>
-            <Icon name="flag" size={14} color={COLORS.inkSoft} />
+            <Feather name="flag" size={14} color={COLORS.inkSoft} />
           </View>
           <View className="flex-1">
             <Text className="font-sans-md text-sm text-ink leading-[18px] mb-0.5">You're holding {rolesOnMe} of 4 roles.</Text>

@@ -5,7 +5,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { scheduleOnRN } from "react-native-worklets";
-import { useApp } from "../../AppContext";
+import { useApp } from "../../context/AppContext";
 import { COLORS } from "../../colors";
 import { TIMING, CHIP, TEXT_SLOT, ANIM, SPRING, ALL_TASKS, type StartupTask } from "../../constants/startup";
 import { LSMark, ARC_LEN } from "./LSMark";

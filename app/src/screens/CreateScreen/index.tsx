@@ -2,10 +2,10 @@ import React, { useState, useRef } from 'react';
 import { View, TouchableOpacity, ActivityIndicator, Keyboard } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useApp } from '../../AppContext';
-import { computeLoad } from '../../tokens';
+import { useApp } from '../../context/AppContext';
+import { computeLoad } from '../../utils/load';
 import { COLORS } from '../../colors';
-import { Icon } from '../../components/primitives';
+import { Feather } from '@expo/vector-icons';
 import { StepDots } from './StepDots';
 import { StepTitle } from './StepTitle';
 import { StepDetails } from './StepDetails';
@@ -15,6 +15,7 @@ import { TOTAL_STEPS, DEFAULT_ASSIGN, whenToDate, toISODate, type WhenValue, typ
 export function CreateScreen() {
   const insets = useSafeAreaInsets();
   const { persona, setActiveTab, activeCircle, tasks, refreshPersona, showToast, currentMember } = useApp();
+  if (!persona) return null;
 
   const defaultId = currentMember?.id ?? persona.members[0].id;
   const myId = persona.members[0].id;
@@ -61,8 +62,8 @@ export function CreateScreen() {
     setSaving(true);
     try {
       await tasks.create({
-        circle_id: activeCircle.id, title: title.trim(),
-        due_date: toISODate(whenToDate(when!)), category,
+        circle_id: activeCircle!.id, title: title.trim(),
+        due_date: toISODate(whenToDate(when!)), category: category ?? undefined,
         weight: effectiveWeight,
         planner_id: assign.planner, organizer_id: assign.organizer,
         reminder_id: assign.reminder, executor_id: assign.executor,
@@ -113,7 +114,7 @@ export function CreateScreen() {
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           activeOpacity={0.7}
         >
-          <Icon name="back" size={20} color={COLORS.ink} />
+          <Feather name="chevron-left" size={20} color={COLORS.ink} />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -126,7 +127,7 @@ export function CreateScreen() {
         >
           {saving
             ? <ActivityIndicator size="small" color={COLORS.surface} />
-            : <Icon name={isLastStep ? 'check' : 'chev'} size={20} color={canContinue ? COLORS.surface : COLORS.muted} />
+            : <Feather name={isLastStep ? 'check' : 'chevron-right'} size={20} color={canContinue ? COLORS.surface : COLORS.muted} />
           }
         </TouchableOpacity>
       </View>

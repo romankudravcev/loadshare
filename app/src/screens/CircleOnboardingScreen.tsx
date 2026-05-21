@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useApp } from '../AppContext';
-import { Display } from '../components/primitives';
+import { useApp } from '../context/AppContext';
+import { Display } from '../components/Kicker';
 import { COLORS } from '../colors';
 import { circles as circlesApi } from '../services/circles';
 import { joinRequests as joinReqApi } from '../services/joinRequests';
 import { supabase } from '../services/db';
 
+type Mode = 'landing' | 'create' | 'join' | 'waiting';
+
 export function CircleOnboardingScreen() {
   const { profile, session, refreshPersona, signOut } = useApp();
   const insets = useSafeAreaInsets();
-  const [mode, setMode]             = useState('landing');
+  const [mode, setMode]             = useState<Mode>('landing');
   const [circleName, setCircleName] = useState('');
   const [circleId, setCircleId]     = useState('');
   const [loading, setLoading]       = useState(false);
@@ -32,7 +34,7 @@ export function CircleOnboardingScreen() {
     if (!circleName.trim()) return;
     setLoading(true);
     try { await circlesApi.create(circleName.trim()); await refreshPersona(); }
-    catch (err) { Alert.alert('Could not create circle', err.message); }
+    catch (err: unknown) { Alert.alert('Could not create circle', (err as Error).message); }
     finally { setLoading(false); }
   }
 
@@ -41,9 +43,10 @@ export function CircleOnboardingScreen() {
     if (!id) return;
     setLoading(true);
     try { await joinReqApi.create(id); }
-    catch (err) {
-      if (!err.message?.includes('unique') && !err.code?.includes('23505')) {
-        Alert.alert('Request failed', err.message);
+    catch (err: unknown) {
+      const e = err as { message?: string; code?: string };
+      if (!e.message?.includes('unique') && !e.code?.includes('23505')) {
+        Alert.alert('Request failed', e.message);
         setLoading(false);
         return;
       }

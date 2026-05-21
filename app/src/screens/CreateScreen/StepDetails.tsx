@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { WeightBars } from '../../components/primitives';
-import { WEIGHTS } from '../../tokens';
+import { WeightBars } from '../../components/WeightBars';
+import { WEIGHTS } from '../../constants/roles';
 import { COLORS } from '../../colors';
 import { GAP, CATEGORIES, WHEN_OPTIONS, CATEGORY_ICONS, type WhenValue, type CategoryValue } from './constants';
 

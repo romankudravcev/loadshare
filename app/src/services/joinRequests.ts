@@ -1,18 +1,19 @@
+import type { JoinRequest } from '../types';
 import { supabase } from './db';
 
 export const joinRequests = {
-  create: async (circleId) => {
+  create: async (circleId: string): Promise<JoinRequest> => {
     const { data: { user } } = await supabase.auth.getUser();
     const { data, error } = await supabase
       .from('circle_join_requests')
-      .insert({ circle_id: circleId, requester_id: user.id })
+      .insert({ circle_id: circleId, requester_id: user!.id })
       .select()
       .single();
     if (error) throw error;
-    return data;
+    return data as JoinRequest;
   },
 
-  listPending: async (circleId) => {
+  listPending: async (circleId: string): Promise<JoinRequest[]> => {
     const { data, error } = await supabase
       .from('circle_join_requests')
       .select(`*, requester:profiles!circle_join_requests_requester_id_fkey (id, name, hue)`)
@@ -20,10 +21,10 @@ export const joinRequests = {
       .eq('status', 'pending')
       .order('created_at', { ascending: true });
     if (error) throw error;
-    return data ?? [];
+    return (data ?? []) as JoinRequest[];
   },
 
-  accept: async (requestId, circleId, requesterId) => {
+  accept: async (requestId: string, circleId: string, requesterId: string): Promise<void> => {
     const { error: memberErr } = await supabase
       .from('circle_members')
       .insert({ circle_id: circleId, user_id: requesterId });
@@ -36,7 +37,7 @@ export const joinRequests = {
     if (error) throw error;
   },
 
-  reject: async (requestId) => {
+  reject: async (requestId: string): Promise<void> => {
     const { error } = await supabase
       .from('circle_join_requests')
       .update({ status: 'rejected' })
