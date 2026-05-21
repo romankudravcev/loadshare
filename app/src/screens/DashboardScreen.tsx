@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Animated, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path, Line } from 'react-native-svg';
 import { useApp } from '../context/AppContext';
@@ -88,7 +88,7 @@ function AnimatedCard({ children, index, style }: { children: React.ReactNode; i
 
 export function DashboardScreen() {
   const insets  = useSafeAreaInsets();
-  const { persona, setOpenTask, setActiveTab } = useApp();
+  const { persona, setOpenTask, setActiveTab, setSettingsOpen } = useApp();
   if (!persona) return null;
 
   const load    = computeLoad(persona);
@@ -114,10 +114,10 @@ export function DashboardScreen() {
           <Kicker color={COLORS.muted}>{persona.label.split('·')[0].trim()}</Kicker>
           <Display size={30} style={{ color: COLORS.ink, marginTop: 2 }}>Hello, {persona.members[0].name}.</Display>
         </View>
-        <View>
+        <Pressable onPress={() => setSettingsOpen(true)}>
           <Avatar member={persona.members[0]} size="l" />
           <View className="absolute -top-[3px] -right-[3px] w-3.5 h-3.5 rounded-full border-2 bg-[#FF3B30]" style={{ borderColor: COLORS.canvas }} />
-        </View>
+        </Pressable>
       </View>
 
       <AnimatedCard index={0} style={{ borderRadius: 18, borderWidth: 0.5, padding: 16, backgroundColor: COLORS.surface, borderColor: COLORS.line, marginBottom: 14 }}>

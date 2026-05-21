@@ -306,9 +306,8 @@ function SettingsSheet({
 }
 
 function AppShell() {
-  const { persona, openTask, setOpenTask, activeTab, setActiveTab, loading } =
+  const { persona, openTask, setOpenTask, activeTab, setActiveTab, loading, settingsOpen, setSettingsOpen } =
     useApp();
-  const [settingsOpen, setSettingsOpen] = useState(false);
 
   if (loading || !persona) {
     return (
@@ -336,21 +335,6 @@ function AppShell() {
         onClose={() => setSettingsOpen(false)}
       />
       <Toast />
-
-      <TouchableOpacity
-        onPress={() => setSettingsOpen(true)}
-        className="absolute right-4 bg-surface border-half border-line rounded-full w-9 h-9 items-center justify-center"
-        style={{
-          bottom: 110,
-          shadowColor: "#000",
-          shadowOpacity: 0.07,
-          shadowRadius: 6,
-          shadowOffset: { width: 0, height: 2 },
-          elevation: 3,
-        }}
-      >
-        <Feather name="more-horizontal" size={18} color={COLORS.muted} />
-      </TouchableOpacity>
     </View>
   );
 }

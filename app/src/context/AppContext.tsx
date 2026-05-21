@@ -33,6 +33,8 @@ interface AppContextValue {
   joinRequests:    typeof joinReqApi;
   toastMessage:    string | null;
   showToast:       (message: string) => void;
+  settingsOpen:    boolean;
+  setSettingsOpen: (open: boolean) => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -45,6 +47,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [openTask, setOpenTask]   = useState<Task | null>(null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const [session, setSession]               = useState<Session | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -148,6 +151,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       profiles:     profilesApi,
       joinRequests: joinReqApi,
       toastMessage, showToast,
+      settingsOpen, setSettingsOpen,
     }}>
       {children}
     </AppContext.Provider>
